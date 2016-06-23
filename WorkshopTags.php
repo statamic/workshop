@@ -46,31 +46,4 @@ class WorkshopTags extends Tags
 
         return $html;
     }
-    
-    /**
-     * Open a form tag
-     *
-     * @param  string $action
-     * @return string
-     */
-    protected function formOpen($action)
-    {
-        $attr_str = '';
-        if ($attrs = $this->getList('attr')) {
-            foreach ($attrs as $attr) {
-                list($param, $value) = explode(':', $attr);
-                $attr_str .= $param . '="' . $value . '" ';
-            }
-        }
-
-        if ($this->getBool('files')) {
-            $attr_str .= 'enctype="multipart/form-data"';
-        }
-
-        $action = $this->eventUrl($action);
-
-        $html = '<form method="POST" action="'.$action.'" '.$attr_str.'>';
-
-        return $html;
-    }
 }
