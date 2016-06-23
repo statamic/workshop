@@ -46,4 +46,22 @@ class WorkshopTags extends Tags
 
         return $html;
     }
+    
+    /**
+     * The {{ workshop:page:create }} tag
+     *
+     * @return string|array
+     */
+    public function pageCreate()
+    {
+        $data = [];
+
+        $html = $this->formOpen('page.create');
+        
+        $html .= $this->parse($data);
+
+        $html .= '</form>';
+
+        return $html;
+    }
 }
