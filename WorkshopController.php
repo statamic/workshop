@@ -127,7 +127,16 @@ class WorkshopController extends Controller
      */
     public function entryCreate()
     {
-        $this->runValidation();
+		if ( ! $this->collection) {
+			// TODO: Throw an exception and/or return an error message
+			dd('Come on now. You need a collection.');
+		}
+		
+        $validator = $this->runValidation();
+		
+		if ($validator->fails()) {
+            return back()->withInput()->withErrors($validator);
+        }
 
         $this->factory = Entry::create($this->slug)
                         ->collection($this->collection)
@@ -135,7 +144,7 @@ class WorkshopController extends Controller
                         ->date()
                         ->get();
 
-        $this->save();
+        return $this->save();
     }
 	
 	/**
@@ -145,7 +154,11 @@ class WorkshopController extends Controller
      */
     public function entryUpdate()
     {
-        $this->runValidation();
+        $validator = $this->runValidation();
+		
+		if ($validator->fails()) {
+            return back()->withInput()->withErrors($validator);
+        }
 
         $this->factory = Entry::create($this->slug)
                         ->collection($this->collection)
@@ -153,7 +166,7 @@ class WorkshopController extends Controller
                         ->date()
                         ->get();
 
-        $this->save();
+        return $this->save();
     }
     
     /**
@@ -163,15 +176,13 @@ class WorkshopController extends Controller
      */
     public function runValidation()
     {
-        $builder = new ValidationBuilder(['fields' => $this->fields], $this->fieldset);
+		$fields = array_merge($this->fields, ['slug' => 'required']);
+		
+        $builder = new ValidationBuilder(['fields' => $fields], $this->fieldset);
 
         $builder->build();
         
-        $validator = \Validator::make($this->fields, $builder->rules());
-        
-        if ($validator->fails()) {
-            return back()->withInput()->withErrors($validator);
-        }
+        return \Validator::make(['fields' => $fields], $builder->rules());
     }
     
     /**
@@ -183,6 +194,8 @@ class WorkshopController extends Controller
     public function save()
     {
         $this->factory->save();
+		
+		$this->flash->put('success', true);
 
         event('content.saved', $this->factory);
 
