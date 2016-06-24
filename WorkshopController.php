@@ -9,24 +9,18 @@ use Statamic\API\Request;
 use Statamic\API\Fieldset;
 use Statamic\Extend\Listener;
 use Illuminate\Http\Response;
+use Statamic\Extend\Controller;
 use Stringy\StaticStringy as Stringy;
 use Statamic\CP\Publish\ValidationBuilder;
 
-class WorkshopListener extends Listener
-{
+class WorkshopController extends Controller
+{    
     /**
-     * The events to be listened for, and the methods to call.
+     * The factory object to work with.
      *
      * @var array
      */
-    public $events = [
-        'Workshop.entry.create'   => 'entryCreate',
-        'Workshop.entry.edit'     => 'entryEdit',
-        'Workshop.entry.delete'   => 'entryDelete',
-        'Workshop.page.create'    => 'pageCreate',
-        'Workshop.page.edit'      => 'pageEdit',
-        'Workshop.page.delete'    => 'pageDelete'
-    ];
+    public $factory;
     
     /**
      * The data with which to create a content file.
@@ -117,11 +111,12 @@ class WorkshopListener extends Listener
         $this->fields = Request::all();
         
         $this->filter();
-        
+
         $this->setFieldset();
         
         $this->slugify();
     }
+
     
     /**
      * Create an entry in a collection.
@@ -129,22 +124,65 @@ class WorkshopListener extends Listener
      * @return request
      */
     public function entryCreate()
-    {    
-        $validator = $this->runValidation();
+    {
+        $this->runValidation();
 
-        if ($validator->fails()) {
-            return back()->withInput()->withErrors($validator);
-        }
-
-        $entry = Entry::create($this->slug)
+        $this->factory = Entry::create($this->slug)
                         ->collection($this->collection)
                         ->with($this->fields)
                         ->date()
                         ->get();
 
-        $entry->save();
+        $this->save();
+    }
+	
+	/**
+     * Create an entry in a collection.
+     * 
+     * @return request
+     */
+    public function entryUpdate()
+    {
+        $this->runValidation();
 
-        event('content.saved', $entry);
+        $this->factory = Entry::create($this->slug)
+                        ->collection($this->collection)
+                        ->with($this->fields)
+                        ->date()
+                        ->get();
+
+        $this->save();
+    }
+    
+    /**
+     * Get the Validator instance
+     *
+     * @return mixed
+     */
+    public function runValidation()
+    {
+        $builder = new ValidationBuilder(['fields' => $this->fields], $this->fieldset);
+
+        $builder->build();
+        
+        $validator = \Validator::make($this->fields, $builder->rules());
+        
+        if ($validator->fails()) {
+            return back()->withInput()->withErrors($validator);
+        }
+    }
+    
+    /**
+     * Save the factory object, run the hook,
+     * and redirect as needed.
+     *
+     * @return mixed
+     */
+    public function save()
+    {
+        $this->factory->save();
+
+        event('content.saved', $this->factory);
 
         if ($this->redirect) {
             return redirect($redirect);
@@ -152,20 +190,6 @@ class WorkshopListener extends Listener
 
         return redirect()->back();
     }
-    
-        /**
-         * Get the Validator instance
-         *
-         * @return mixed
-         */
-        public function runValidation()
-        {
-            $builder = new ValidationBuilder(['fields' => $this->fields], $this->fieldset);
-
-            $builder->build();
-            
-            return \Validator::make($this->fields, $builder->rules());
-        }
     
     /**
      * Set the slug based on another field. Defaults to title.
@@ -180,8 +204,8 @@ class WorkshopListener extends Listener
     }
     
     /**
-     * Filter out any meta fields from the request object
-     * and assign them to class variables, leaving you a
+     * Filter out any meta fields from the request object and
+     * and assign them to class variables, leaving you with
      * a nice and clean $fields variable to work with.
      * 
      * @return void

@@ -2,6 +2,7 @@
 
 namespace Statamic\Addons\Workshop;
 
+use Statamic\API\URL;
 use Statamic\API\Entry;
 use Statamic\API\Helper;
 use Statamic\API\Content;
@@ -12,8 +13,8 @@ class WorkshopTags extends Tags
 {
     /**
      * The middleman. The camelCase handler. The dude.
-     * We are using workshop:noun:verb syntax, so this
-     * does the magic transformation.
+     * We are using workshop:noun:verb syntax, and
+     * this does the magic transformation.
      *
      * @param string $method
      * @param array  $args
@@ -27,7 +28,6 @@ class WorkshopTags extends Tags
             return $this->$method();
         }
     }
-    
 
     /**
      * The {{ workshop:entry:create }} tag
@@ -38,9 +38,29 @@ class WorkshopTags extends Tags
     {
         $data = [];
 
-        $html = $this->formOpen('entry.create');
-        
+        $html = $this->formOpen('entryCreate');
+
         $html .= $this->parse($data);
+
+        $html .= '</form>';
+
+        return $html;
+    }
+    
+    /**
+     * The {{ workshop:entry:create }} tag
+     *
+     * @return string|array
+     */
+    public function entryEdit()
+    {
+        $url = $this->get('url', URL::getCurrent());
+
+        $entry = ($this->get('id')) ? Content::uuidRaw($this->get('id')) : Content::getRaw($url);
+
+        $html = $this->formOpen('entryUpdate');
+
+        $html .= $this->parse($entry->data());
 
         $html .= '</form>';
 
@@ -56,7 +76,7 @@ class WorkshopTags extends Tags
     {
         $data = [];
 
-        $html = $this->formOpen('page.create');
+        $html = $this->formOpen('pageCreate');
         
         $html .= $this->parse($data);
 
