@@ -108,6 +108,8 @@ class WorkshopController extends Controller
      */
     public function __construct()
     {
+		parent::__construct();
+		
         $this->fields = Request::all();
         
         $this->filter();
