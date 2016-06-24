@@ -27,7 +27,7 @@ class WorkshopTags extends Tags
         'slug',
         'slugify'
     ];
-    
+
     /**
      * The middleman. The camelCase handler. The dude.
      * We are using workshop:noun:verb syntax, and
@@ -62,7 +62,7 @@ class WorkshopTags extends Tags
 
         return $html;
     }
-    
+
     /**
      * The {{ workshop:entry:create }} tag
      *
@@ -75,14 +75,12 @@ class WorkshopTags extends Tags
         $entry = ($this->get('id')) ? Content::uuidRaw($this->get('id')) : Content::getRaw($url);
 
         $html = $this->formOpen('entryUpdate');
-
         $html .= $this->parse($entry->data());
-
         $html .= '</form>';
 
         return $html;
     }
-    
+
     /**
      * The {{ workshop:page:create }} tag
      *
@@ -99,7 +97,7 @@ class WorkshopTags extends Tags
 
         return $html;
     }
-    
+
     /**
      * Maps to {{ form:success }}
      *
@@ -109,7 +107,7 @@ class WorkshopTags extends Tags
     {
         return $this->flash->exists('success');
     }
-    
+
     /**
      * Encypts any special meta fields set as tag parameters
      * and sets them in a special HTML hidden input field.

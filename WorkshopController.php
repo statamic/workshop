@@ -2,7 +2,9 @@
 
 namespace Statamic\Addons\Workshop;
 
+use Statamic\API\URL;
 use Statamic\API\Form;
+use Statamic\API\Page;
 use Statamic\API\Crypt;
 use Statamic\API\Entry;
 use Statamic\API\Request;
@@ -39,7 +41,7 @@ class WorkshopController extends Controller
         'date',
         'fieldset',
         'published',
-		'parent',
+        'parent',
         'redirect',
         'slug',
         'slugify'
@@ -78,7 +80,7 @@ class WorkshopController extends Controller
      *
      * @var string
      */
-    private $parent;
+    private $parent = '/';
     
     /**
      * The published status of the content.
@@ -109,8 +111,8 @@ class WorkshopController extends Controller
      */
     public function __construct()
     {
-		parent::__construct();
-		
+        parent::__construct();
+        
         $this->fields = Request::all();
         
         $this->filter();
@@ -128,14 +130,14 @@ class WorkshopController extends Controller
      */
     public function entryCreate()
     {
-		if ( ! $this->collection) {
-			// TODO: Throw an exception and/or return an error message
-			dd('Come on now. You need a collection.');
-		}
-		
+        if ( ! $this->collection) {
+            // TODO: Throw an exception and/or return an error message
+            dd('Come on now. You need a collection.');
+        }
+        
         $validator = $this->runValidation();
-		
-		if ($validator->fails()) {
+        
+        if ($validator->fails()) {
             return back()->withInput()->withErrors($validator);
         }
 
@@ -147,8 +149,8 @@ class WorkshopController extends Controller
 
         return $this->save();
     }
-	
-	/**
+
+    /**
      * Create an entry in a collection.
      * 
      * @return request
@@ -156,8 +158,8 @@ class WorkshopController extends Controller
     public function entryUpdate()
     {
         $validator = $this->runValidation();
-		
-		if ($validator->fails()) {
+
+        if ($validator->fails()) {
             return back()->withInput()->withErrors($validator);
         }
 
@@ -169,7 +171,29 @@ class WorkshopController extends Controller
 
         return $this->save();
     }
-    
+
+    /**
+     * Create a page.
+     * 
+     * @return request
+     */
+    public function pageCreate()
+    {
+        $validator = $this->runValidation();
+
+        if ($validator->fails()) {
+            return back()->withInput()->withErrors($validator);
+        }
+
+        $url = URL::assemble($this->parent, $this->slug);
+
+        $this->factory = Page::create($url)
+                        ->with($this->fields)
+                        ->get();
+
+        return $this->save();
+    }
+
     /**
      * Get the Validator instance
      *
@@ -177,15 +201,15 @@ class WorkshopController extends Controller
      */
     public function runValidation()
     {
-		$fields = array_merge($this->fields, ['slug' => 'required']);
-		
+        $fields = array_merge($this->fields, ['slug' => 'required']);
+        
         $builder = new ValidationBuilder(['fields' => $fields], $this->fieldset);
 
         $builder->build();
         
         return \Validator::make(['fields' => $fields], $builder->rules());
     }
-    
+
     /**
      * Save the factory object, run the hook,
      * and redirect as needed.
@@ -195,18 +219,18 @@ class WorkshopController extends Controller
     public function save()
     {
         $this->factory->save();
-		
-		$this->flash->put('success', true);
+        
+        $this->flash->put('success', true);
 
         event('content.saved', $this->factory);
 
         if ($this->redirect) {
-            return redirect($redirect);
+            return redirect($this->getRedirect());
         };
 
         return redirect()->back();
     }
-    
+
     /**
      * Set the slug based on another field. Defaults to title.
      * 
@@ -218,7 +242,7 @@ class WorkshopController extends Controller
 
         $this->slug = Stringy::slugify($sluggard);
     }
-    
+
     /**
      * Filter out any meta fields from the request object and
      * and assign them to class variables, leaving you with
@@ -228,28 +252,29 @@ class WorkshopController extends Controller
      */
     private function filter()
     {
-		// Filter the HTML form data first
+        // Filter the HTML form data first
         foreach ($this->fields as $key => $field) {
             if (in_array($key, $this->meta)) {
                 $this->{$key} = $field;
                 unset($this->fields[$key]);
             }
         }
-		
-		// And override those with special meta fields set
-		// on the tag itself as parameters
-		if (array_get($this->fields, '_meta')) {
-			$meta = Crypt::decrypt($this->fields['_meta']);
-			
-			foreach ($meta as $key => $field) {
-				if (in_array($key, $this->meta)) {
-	                $this->{$key} = $field;
-	            }
-			}
-		}
+
+        // And override those with special meta fields set
+        // on the tag itself as parameters
+        if (array_get($this->fields, '_meta')) {
+            $meta = Crypt::decrypt($this->fields['_meta']);
+            
+            foreach ($meta as $key => $field) {
+                if (in_array($key, $this->meta)) {
+                    $this->{$key} = $field;
+                }
+            }
+            unset($this->fields['_meta']);
+        }
     }
-    
-	/**
+
+    /**
      * Find and set the Fieldset object, if there is one.
      * 
      * @return void
@@ -258,6 +283,18 @@ class WorkshopController extends Controller
     {
         if ($this->fieldset) {
             $this->fieldset = Fieldset::get($this->fieldset);
+        }
+    }
+
+    /**
+     * Find and set the redirect URL.
+     * 
+     * @return void
+     */
+    private function getRedirect()
+    {
+        if ($this->redirect == 'url') {
+            return $this->factory->urlPath();
         }
     }
 }
