@@ -3,6 +3,7 @@
 namespace Statamic\Addons\Workshop;
 
 use Statamic\API\URL;
+use Statamic\API\Crypt;
 use Statamic\API\Entry;
 use Statamic\API\Helper;
 use Statamic\API\Content;
@@ -11,6 +12,22 @@ use Stringy\StaticStringy as Stringy;
 
 class WorkshopTags extends Tags
 {
+    /**
+     * Fields that can be overridden with tag parameters
+     *
+     * @var array
+     */
+    private $meta = [
+        'collection',
+        'date',
+        'fieldset',
+        'published',
+		'parent',
+        'redirect',
+        'slug',
+        'slugify'
+    ];
+    
     /**
      * The middleman. The camelCase handler. The dude.
      * We are using workshop:noun:verb syntax, and
@@ -39,9 +56,8 @@ class WorkshopTags extends Tags
         $data = [];
 
         $html = $this->formOpen('entryCreate');
-
+        $html .= $this->getMetaFields();
         $html .= $this->parse($data);
-
         $html .= '</form>';
 
         return $html;
@@ -77,11 +93,33 @@ class WorkshopTags extends Tags
         $data = [];
 
         $html = $this->formOpen('pageCreate');
-        
+        $html .= $this->getMetaFields();
         $html .= $this->parse($data);
-
         $html .= '</form>';
 
         return $html;
+    }
+    
+    /**
+     * Maps to {{ form:success }}
+     *
+     * @return bool
+     */
+    public function success()
+    {
+        return $this->flash->exists('success');
+    }
+    
+    /**
+     * Encypts any special meta fields set as tag parameters
+     * and sets them in a special HTML hidden input field.
+     *
+     * @return string
+     */
+    private function getMetaFields()
+    {
+        $meta = array_intersect_key($this->parameters, array_flip($this->meta));
+
+        return '<input type="hidden" name="_meta" value="'. Crypt::encrypt($meta) .'" />';
     }
 }

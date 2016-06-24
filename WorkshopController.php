@@ -39,6 +39,7 @@ class WorkshopController extends Controller
         'date',
         'fieldset',
         'published',
+		'parent',
         'redirect',
         'slug',
         'slugify'
@@ -227,14 +228,32 @@ class WorkshopController extends Controller
      */
     private function filter()
     {
+		// Filter the HTML form data first
         foreach ($this->fields as $key => $field) {
             if (in_array($key, $this->meta)) {
                 $this->{$key} = $field;
                 unset($this->fields[$key]);
             }
         }
+		
+		// And override those with special meta fields set
+		// on the tag itself as parameters
+		if (array_get($this->fields, '_meta')) {
+			$meta = Crypt::decrypt($this->fields['_meta']);
+			
+			foreach ($meta as $key => $field) {
+				if (in_array($key, $this->meta)) {
+	                $this->{$key} = $field;
+	            }
+			}
+		}
     }
     
+	/**
+     * Find and set the Fieldset object, if there is one.
+     * 
+     * @return void
+     */
     private function setFieldset()
     {
         if ($this->fieldset) {
