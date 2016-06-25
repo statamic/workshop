@@ -127,6 +127,11 @@ class WorkshopTags extends Tags
         return $this->flash->exists('success');
     }
 
+    /**
+     * Get content by URL or id, falling back to the current page/entry
+     *
+     * @return Content
+     */
     private function getContent()
     {
         $url = $this->get('url', URL::getCurrent());
