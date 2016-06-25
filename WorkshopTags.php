@@ -18,6 +18,7 @@ class WorkshopTags extends Tags
      * @var array
      */
     private $meta = [
+        'id',
         'collection',
         'date',
         'fieldset',
@@ -27,6 +28,8 @@ class WorkshopTags extends Tags
         'slug',
         'slugify'
     ];
+
+    private $id;
 
     /**
      * The middleman. The camelCase handler. The dude.
@@ -40,7 +43,7 @@ class WorkshopTags extends Tags
     public function __call($method, $args)
     {
         $method = Stringy::camelize(str_replace(':', '_', $method));
-        
+
         if (method_exists($this, $method)) {
             return $this->$method();
         }
@@ -70,11 +73,10 @@ class WorkshopTags extends Tags
      */
     public function entryEdit()
     {
-        $url = $this->get('url', URL::getCurrent());
-
-        $entry = ($this->get('id')) ? Content::uuidRaw($this->get('id')) : Content::getRaw($url);
+        $entry = $this->getContent();
 
         $html = $this->formOpen('entryUpdate');
+        $html .= $this->getMetaFields();
         $html .= $this->parse($entry->data());
         $html .= '</form>';
 
@@ -99,6 +101,23 @@ class WorkshopTags extends Tags
     }
 
     /**
+     * The {{ workshop:entry:create }} tag
+     *
+     * @return string|array
+     */
+    public function pageEdit()
+    {
+        $page = $this->getContent();
+
+        $html = $this->formOpen('pageUpdate');
+        $html .= $this->getMetaFields();
+        $html .= $this->parse($page->data());
+        $html .= '</form>';
+
+        return $html;
+    }
+
+    /**
      * Maps to {{ form:success }}
      *
      * @return bool
@@ -106,6 +125,17 @@ class WorkshopTags extends Tags
     public function success()
     {
         return $this->flash->exists('success');
+    }
+
+    private function getContent()
+    {
+        $url = $this->get('url', URL::getCurrent());
+
+        $content = ($this->get('id')) ? Content::uuidRaw($this->get('id')) : Content::getRaw($url);
+
+        $this->id = $content->id();
+
+        return $content;
     }
 
     /**
@@ -117,6 +147,7 @@ class WorkshopTags extends Tags
     private function getMetaFields()
     {
         $meta = array_intersect_key($this->parameters, array_flip($this->meta));
+        $meta['id'] = $this->id;
 
         return '<input type="hidden" name="_meta" value="'. Crypt::encrypt($meta) .'" />';
     }

@@ -7,6 +7,7 @@ use Statamic\API\Form;
 use Statamic\API\Page;
 use Statamic\API\Crypt;
 use Statamic\API\Entry;
+use Statamic\API\Content;
 use Statamic\API\Request;
 use Statamic\API\Fieldset;
 use Statamic\Extend\Listener;
@@ -16,27 +17,28 @@ use Stringy\StaticStringy as Stringy;
 use Statamic\CP\Publish\ValidationBuilder;
 
 class WorkshopController extends Controller
-{    
+{
     /**
      * The factory object to work with.
      *
      * @var array
      */
     public $factory;
-    
+
     /**
      * The data with which to create a content file.
      *
      * @var array
      */
     public $fields = [];
-    
+
     /**
      * Fields that should be stripped out as meta data.
      *
      * @var array
      */
     private $meta = [
+        'id',
         'collection',
         'date',
         'fieldset',
@@ -46,86 +48,93 @@ class WorkshopController extends Controller
         'slug',
         'slugify'
     ];
-    
+
+    /**
+     * The content's id
+     *
+     * @var string
+     */
+    private $id;
+
     /**
      * An entry's optional date.
      *
      * @var string
      */
     private $date;
-    
+
     /**
      * The content's slug. By default will be a slugifed 'title'.
      *
      * @var string
      */
     private $slug;
-    
+
     /**
      * An entry's collection. Where it belongs.
      *
      * @var string
      */
     private $collection;
-    
+
     /**
      * The fieldset. The thing that rules them all.
      *
      * @var string
      */
     private $fieldset;
-    
+
     /**
      * A page's optional parent page.
      *
      * @var string
      */
     private $parent = '/';
-    
+
     /**
      * The published status of the content.
      *
      * @var string
      */
     private $published = true;
-    
+
     /**
      * The URL to redirect the user to upon success
      *
      * @var string
      */
     private $redirect;
-    
+
     /**
      * The field to slugify to create the slug.
      *
      * @var string
      */
     private $slugify = 'title';
-    
+
     /**
      * Manipulate common request data across all types
      * of content, big and small.
-     * 
+     *
      * @return void
      */
     public function __construct()
     {
         parent::__construct();
-        
+
         $this->fields = Request::all();
-        
+
         $this->filter();
 
         $this->setFieldset();
-        
+
         $this->slugify();
     }
 
-    
+
     /**
      * Create an entry in a collection.
-     * 
+     *
      * @return request
      */
     public function entryCreate()
@@ -134,9 +143,9 @@ class WorkshopController extends Controller
             // TODO: Throw an exception and/or return an error message
             dd('Come on now. You need a collection.');
         }
-        
+
         $validator = $this->runValidation();
-        
+
         if ($validator->fails()) {
             return back()->withInput()->withErrors($validator);
         }
@@ -151,30 +160,18 @@ class WorkshopController extends Controller
     }
 
     /**
-     * Create an entry in a collection.
-     * 
+     * Update an entry in a collection.
+     *
      * @return request
      */
     public function entryUpdate()
     {
-        $validator = $this->runValidation();
-
-        if ($validator->fails()) {
-            return back()->withInput()->withErrors($validator);
-        }
-
-        $this->factory = Entry::create($this->slug)
-                        ->collection($this->collection)
-                        ->with($this->fields)
-                        ->date()
-                        ->get();
-
-        return $this->save();
+        return $this->update();
     }
 
     /**
      * Create a page.
-     * 
+     *
      * @return request
      */
     public function pageCreate()
@@ -195,18 +192,50 @@ class WorkshopController extends Controller
     }
 
     /**
+     * Update a page.
+     *
+     * @return request
+     */
+    public function pageUpdate()
+    {
+        return $this->update();
+    }
+
+    /**
+     * Update a content file with new data.
+     *
+     * @return request
+     */
+    private function update()
+    {
+        $validator = $this->runValidation();
+
+        if ($validator->fails()) {
+            return back()->withInput()->withErrors($validator);
+        }
+
+        $this->factory = Content::uuidRaw($this->id);
+
+        $data = array_merge($this->factory->data(), $this->fields);
+
+        $this->factory->data($data);
+
+        return $this->save();
+    }
+
+    /**
      * Get the Validator instance
      *
      * @return mixed
      */
-    public function runValidation()
+    private function runValidation()
     {
         $fields = array_merge($this->fields, ['slug' => 'required']);
-        
+
         $builder = new ValidationBuilder(['fields' => $fields], $this->fieldset);
 
         $builder->build();
-        
+
         return \Validator::make(['fields' => $fields], $builder->rules());
     }
 
@@ -216,10 +245,10 @@ class WorkshopController extends Controller
      *
      * @return mixed
      */
-    public function save()
+    private function save()
     {
         $this->factory->save();
-        
+
         $this->flash->put('success', true);
 
         event('content.saved', $this->factory);
@@ -233,10 +262,10 @@ class WorkshopController extends Controller
 
     /**
      * Set the slug based on another field. Defaults to title.
-     * 
+     *
      * @return void
      */
-    public function slugify()
+    private function slugify()
     {
         $sluggard = array_get($this->fields, $this->slugify, current($this->fields));
 
@@ -247,7 +276,7 @@ class WorkshopController extends Controller
      * Filter out any meta fields from the request object and
      * and assign them to class variables, leaving you with
      * a nice and clean $fields variable to work with.
-     * 
+     *
      * @return void
      */
     private function filter()
@@ -264,7 +293,7 @@ class WorkshopController extends Controller
         // on the tag itself as parameters
         if (array_get($this->fields, '_meta')) {
             $meta = Crypt::decrypt($this->fields['_meta']);
-            
+
             foreach ($meta as $key => $field) {
                 if (in_array($key, $this->meta)) {
                     $this->{$key} = $field;
@@ -276,7 +305,7 @@ class WorkshopController extends Controller
 
     /**
      * Find and set the Fieldset object, if there is one.
-     * 
+     *
      * @return void
      */
     private function setFieldset()
@@ -288,7 +317,7 @@ class WorkshopController extends Controller
 
     /**
      * Find and set the redirect URL.
-     * 
+     *
      * @return void
      */
     private function getRedirect()
