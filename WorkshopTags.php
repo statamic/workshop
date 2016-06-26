@@ -7,6 +7,7 @@ use Statamic\API\Crypt;
 use Statamic\API\Entry;
 use Statamic\API\Helper;
 use Statamic\API\Content;
+use Statamic\API\Globals;
 use Statamic\Extend\Tags;
 use Stringy\StaticStringy as Stringy;
 
@@ -52,7 +53,7 @@ class WorkshopTags extends Tags
     /**
      * The {{ workshop:entry:create }} tag
      *
-     * @return string|array
+     * @return string
      */
     public function entryCreate()
     {
@@ -69,7 +70,7 @@ class WorkshopTags extends Tags
     /**
      * The {{ workshop:entry:create }} tag
      *
-     * @return string|array
+     * @return string
      */
     public function entryEdit()
     {
@@ -86,7 +87,7 @@ class WorkshopTags extends Tags
     /**
      * The {{ workshop:page:create }} tag
      *
-     * @return string|array
+     * @return string
      */
     public function pageCreate()
     {
@@ -103,7 +104,7 @@ class WorkshopTags extends Tags
     /**
      * The {{ workshop:entry:create }} tag
      *
-     * @return string|array
+     * @return string
      */
     public function pageEdit()
     {
@@ -112,6 +113,30 @@ class WorkshopTags extends Tags
         $html = $this->formOpen('pageUpdate');
         $html .= $this->getMetaFields();
         $html .= $this->parse($page->data());
+        $html .= '</form>';
+
+        return $html;
+    }
+
+    /**
+     * The {{ workshop:global:edit }} tag
+     *
+     * @return string
+     */
+    public function globalEdit()
+    {
+        if ($this->get('id')) {
+            $global = $this->getContent();
+
+        } else {
+            $handle = $this->get(['handle', 'slug', 'set'], 'global');
+            $global = Globals::getBySlug($handle);
+            $this->id = $global->id();
+        }
+
+        $html = $this->formOpen('globalUpdate');
+        $html .= $this->getMetaFields();
+        $html .= $this->parse($global->data());
         $html .= '</form>';
 
         return $html;
