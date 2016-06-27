@@ -202,6 +202,16 @@ class WorkshopController extends Controller
     }
 
     /**
+     * Update a global.
+     *
+     * @return request
+     */
+    public function globalUpdate()
+    {
+        return $this->update();
+    }
+
+    /**
      * Update a content file with new data.
      *
      * @return request

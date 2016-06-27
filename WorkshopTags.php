@@ -14,11 +14,12 @@ use Stringy\StaticStringy as Stringy;
 class WorkshopTags extends Tags
 {
     /**
-     * Fields that can be overridden with tag parameters
+     * The names of protected fields that can be
+     * overridden by tag parameters.
      *
      * @var array
      */
-    private $meta = [
+    private $protected = [
         'id',
         'collection',
         'date',
@@ -29,6 +30,8 @@ class WorkshopTags extends Tags
         'slug',
         'slugify'
     ];
+
+    private $meta;
 
     private $id;
 
@@ -134,6 +137,8 @@ class WorkshopTags extends Tags
             $this->id = $global->id();
         }
 
+        $this->meta['fieldset'] = $this->get('fieldset', $global->fieldset()->name());
+
         $html = $this->formOpen('globalUpdate');
         $html .= $this->getMetaFields();
         $html .= $this->parse($global->data());
@@ -176,9 +181,11 @@ class WorkshopTags extends Tags
      */
     private function getMetaFields()
     {
-        $meta = array_intersect_key($this->parameters, array_flip($this->meta));
-        $meta['id'] = $this->id;
+        $fields = array_intersect_key($this->parameters, array_flip($this->protected));
+        $fields['id'] = $this->id;
 
-        return '<input type="hidden" name="_meta" value="'. Crypt::encrypt($meta) .'" />';
+        $this->meta = array_merge($this->meta, $fields);
+
+        return '<input type="hidden" name="_meta" value="'. Crypt::encrypt($this->meta) .'" />';
     }
 }
