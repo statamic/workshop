@@ -126,6 +126,8 @@ class WorkshopController extends Controller
 
         $this->filter();
 
+        $this->startFactory();
+
         $this->setFieldset();
 
         $this->slugify();
@@ -224,8 +226,6 @@ class WorkshopController extends Controller
             return back()->withInput()->withErrors($validator);
         }
 
-        $this->factory = Content::uuidRaw($this->id);
-
         $data = array_merge($this->factory->data(), $this->fields);
 
         $this->factory->data($data);
@@ -268,6 +268,13 @@ class WorkshopController extends Controller
         };
 
         return redirect()->back();
+    }
+
+    private function startFactory()
+    {
+        if ($this->id) {
+            $this->factory = Content::uuidRaw($this->id);
+        }
     }
 
     /**
@@ -322,6 +329,8 @@ class WorkshopController extends Controller
     {
         if ($this->fieldset) {
             $this->fieldset = Fieldset::get($this->fieldset);
+        } else {
+            $this->fieldset = $this->factory->fieldset();
         }
     }
 
