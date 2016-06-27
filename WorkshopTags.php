@@ -23,6 +23,7 @@ class WorkshopTags extends Tags
         'collection',
         'date',
         'fieldset',
+        'order',
         'published',
 		'parent',
         'redirect',

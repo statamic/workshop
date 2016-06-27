@@ -42,6 +42,7 @@ class WorkshopController extends Controller
         'collection',
         'date',
         'fieldset',
+        'order',
         'published',
         'parent',
         'redirect',
@@ -83,6 +84,13 @@ class WorkshopController extends Controller
      * @var string
      */
     private $fieldset;
+
+    /**
+     * An entry or page's Order key.
+     *
+     * @var string
+     */
+    private $order;
 
     /**
      * A page's optional parent page.
@@ -128,7 +136,7 @@ class WorkshopController extends Controller
 
         $this->startFactory();
 
-        $this->setFieldset();
+        $this->setFieldsetAndMore();
 
         $this->slugify();
     }
@@ -153,10 +161,16 @@ class WorkshopController extends Controller
         }
 
         $this->factory = Entry::create($this->slug)
-                        ->collection($this->collection)
-                        ->with($this->fields)
-                        ->date()
-                        ->get();
+                        ->collection($this->collection->path())
+                        ->with($this->fields);
+
+        if ($this->collection->order() == 'date') {
+            $this->factory->date($this->$date);
+        } elseif ($this->order) {
+            $this->factory->order($this->order);
+        }
+
+        $this->factory = $this->factory->get();
 
         return $this->save();
     }
@@ -325,12 +339,20 @@ class WorkshopController extends Controller
      *
      * @return void
      */
-    private function setFieldset()
+    private function setFieldsetAndMore()
     {
+        // Set that collection
+        if ($this->collection) {
+            $this->collection = Content::collection($this->collection);
+        }
+
+        // Set that fieldset
         if ($this->fieldset) {
             $this->fieldset = Fieldset::get($this->fieldset);
-        } else {
+        } elseif ($this->factory) {
             $this->fieldset = $this->factory->fieldset();
+        } elseif ($this->collection) {
+            $this->fieldset = $this->collection->fieldset();
         }
     }
 
