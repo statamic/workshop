@@ -1,3 +1,5 @@
 fields:
   enforce_auth:
     type: toggle
+  whitelist:
+    type: toggle

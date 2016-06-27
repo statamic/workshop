@@ -354,6 +354,11 @@ class WorkshopController extends Controller
         } elseif ($this->collection) {
             $this->fieldset = $this->collection->fieldset();
         }
+
+        // Drop any field that's not in the fieldset
+        if ($this->fieldset && $this->getConfig('whitelist', true)) {
+            $this->fields = array_intersect_key($this->fields, array_flip(array_keys($this->fieldset->fields())));
+        }
     }
 
     /**
