@@ -45,7 +45,7 @@ class WorkshopTags extends Tags
     {
         $method = Stringy::camelize(str_replace(':', '_', $method));
 
-        if (method_exists($this, $method)) {
+        if ($this->isAllowed() && method_exists($this, $method)) {
             return $this->$method();
         }
     }
@@ -180,5 +180,20 @@ class WorkshopTags extends Tags
         $meta['id'] = $this->id;
 
         return '<input type="hidden" name="_meta" value="'. Crypt::encrypt($meta) .'" />';
+    }
+
+    /**
+     * Checks to see if the user is allowed to use the Workshop.
+     * Not everyone is so lucky.
+     *
+     * @return bool
+     */
+    private function isAllowed()
+    {
+        if ($this->getConfig('enforce_auth') && ! \Auth::check()) {
+            return false;
+        };
+
+        return true;
     }
 }
