@@ -22,11 +22,11 @@ When editing, if you don't specify a `url` or `id` to edit, it will assume the c
 
 ## Tags
 
-- [workshop:entry:create][#entry-create]
-- [workshop:entry:edit][#entry-edit]
-- [workshop:page:create][#page-create]
-- [workshop:page:edit][#page-edit]
-- [workshop:global:edit][#page-edit]
+- [workshop:entry:create](#entry-create)
+- [workshop:entry:edit](#entry-edit)
+- [workshop:page:create](#page-create)
+- [workshop:page:edit](#page-edit)
+- [workshop:global:edit](#page-edit)
 
 ### Entry:Create {#entry-create}
 
