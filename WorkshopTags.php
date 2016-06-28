@@ -31,6 +31,11 @@ class WorkshopTags extends Tags
         'slugify'
     ];
 
+    /**
+     * The content's id
+     *
+     * @var string
+     */
     private $id;
 
     /**
@@ -58,7 +63,7 @@ class WorkshopTags extends Tags
      */
     public function entryCreate()
     {
-        $data = [];
+        $data = $this->getErrorsAndSuccess();
 
         $html = $this->formOpen('entryCreate');
         $html .= $this->getMetaFields();
@@ -77,9 +82,11 @@ class WorkshopTags extends Tags
     {
         $entry = $this->getContent();
 
+        $data = array_merge($this->getErrorsAndSuccess(), $entry->data());
+
         $html = $this->formOpen('entryUpdate');
         $html .= $this->getMetaFields();
-        $html .= $this->parse($entry->data());
+        $html .= $this->parse($data);
         $html .= '</form>';
 
         return $html;
@@ -92,7 +99,7 @@ class WorkshopTags extends Tags
      */
     public function pageCreate()
     {
-        $data = [];
+        $data = $this->getErrorsAndSuccess();
 
         $html = $this->formOpen('pageCreate');
         $html .= $this->getMetaFields();
@@ -111,9 +118,11 @@ class WorkshopTags extends Tags
     {
         $page = $this->getContent();
 
+        $data = array_merge($this->getErrorsAndSuccess(), $page->data());
+
         $html = $this->formOpen('pageUpdate');
         $html .= $this->getMetaFields();
-        $html .= $this->parse($page->data());
+        $html .= $this->parse($data);
         $html .= '</form>';
 
         return $html;
@@ -135,9 +144,11 @@ class WorkshopTags extends Tags
             $this->id = $global->id();
         }
 
+        $data = array_merge($this->getErrorsAndSuccess(), $global->data());
+
         $html = $this->formOpen('globalUpdate');
         $html .= $this->getMetaFields();
-        $html .= $this->parse($global->data());
+        $html .= $this->parse($data);
         $html .= '</form>';
 
         return $html;
@@ -196,5 +207,37 @@ class WorkshopTags extends Tags
         };
 
         return true;
+    }
+
+    /**
+     * Does this form have errors?
+     *
+     * @return bool
+     */
+    private function hasErrors()
+    {
+        return (session()->has('errors'))
+               ? session()->get('errors')->hasBag('workshop')
+               : false;
+    }
+
+    /**
+     * Get any errors or success messages ready to parse
+     *
+     * @return array
+     */
+    private function getErrorsAndSuccess()
+    {
+        $data = [];
+
+        if ($this->hasErrors()) {
+            $data['errors'] = session('errors')->getBag('workshop')->all();
+        }
+
+        if ($this->flash->exists('success')) {
+            $data['success'] = true;
+        }
+
+        return $data;
     }
 }

@@ -130,6 +130,10 @@ class WorkshopController extends Controller
     {
         parent::__construct();
 
+        if ( ! $this->isAllowed()) {
+            return redirect()->back();
+        }
+
         $this->fields = Request::all();
 
         $this->filter();
@@ -157,7 +161,7 @@ class WorkshopController extends Controller
         $validator = $this->runValidation();
 
         if ($validator->fails()) {
-            return back()->withInput()->withErrors($validator);
+            return back()->withInput()->withErrors($validator, 'workshop');
         }
 
         $this->factory = Entry::create($this->slug)
@@ -371,5 +375,20 @@ class WorkshopController extends Controller
         if ($this->redirect == 'url') {
             return $this->factory->urlPath();
         }
+    }
+
+    /**
+     * Checks to see if the user is allowed to use the Workshop.
+     * Not everyone is so lucky.
+     *
+     * @return bool
+     */
+    private function isAllowed()
+    {
+        if ($this->getConfig('enforce_auth') && ! \Auth::check()) {
+            return false;
+        };
+
+        return true;
     }
 }
