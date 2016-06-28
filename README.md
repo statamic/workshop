@@ -22,13 +22,13 @@ When editing, if you don't specify a `url` or `id` to edit, it will assume the c
 
 ## Tags
 
-- [workshop:entry:create](#entry-create)
-- [workshop:entry:edit](#entry-edit)
-- [workshop:page:create](#page-create)
-- [workshop:page:edit](#page-edit)
-- [workshop:global:edit](#page-edit)
+- [workshop:entry:create](#entrycreate)
+- [workshop:entry:edit](#entryedit)
+- [workshop:page:create](#pagecreate)
+- [workshop:page:edit](#pageedit)
+- [workshop:global:edit](#pageedit)
 
-### Entry:Create {#entry-create}
+### Entry:Create
 
 When creating an entry, the only required parameter is the name of the collection.
 
@@ -40,7 +40,7 @@ When creating an entry, the only required parameter is the name of the collectio
 
 ```
 
-### Entry:Edit {#entry-edit}
+### Entry:Edit
 
 You can use `id` or `url` to pick which entry to edit. If unset, will assume current URL.
 ```
@@ -50,7 +50,7 @@ You can use `id` or `url` to pick which entry to edit. If unset, will assume cur
 {{ /workshop:entry:edit }}
 ```
 
-### Page:Create {#page-create}
+### Page:Create
 
 If you don't set a `parent` param/value, will create a top-level Page.
 ```
@@ -60,7 +60,7 @@ If you don't set a `parent` param/value, will create a top-level Page.
 {{ /workshop:page:create }}
 ```
 
-### Page:Edit {#page-edit}
+### Page:Edit
 You can use `id` or `url` to pick which page to edit. If unset, will assume current URL.
 ```
 {{ workshop:page:edit id="987xyz" }}
@@ -69,7 +69,7 @@ You can use `id` or `url` to pick which page to edit. If unset, will assume curr
 {{ /workshop:page:create }}
 ```
 
-### Global:Edit {#global-edit}
+### Global:Edit
 
 Give the `set` name to pick which Global set to edit. If unset, will assume the base default `globals`.
 ```
