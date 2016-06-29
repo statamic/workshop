@@ -169,7 +169,7 @@ class WorkshopController extends Controller
                         ->with($this->fields);
 
         if ($this->collection->order() == 'date') {
-            $this->factory->date($this->$date);
+            $this->factory->date($this->date);
         } elseif ($this->order) {
             $this->factory->order($this->order);
         }
