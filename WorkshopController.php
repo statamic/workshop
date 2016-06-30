@@ -375,6 +375,8 @@ class WorkshopController extends Controller
         if ($this->redirect == 'url') {
             return $this->factory->urlPath();
         }
+
+        return $this->redirect;
     }
 
     /**
