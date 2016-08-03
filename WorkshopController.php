@@ -151,7 +151,7 @@ class WorkshopController extends Controller
      *
      * @return request
      */
-    public function entryCreate()
+    public function postEntryCreate()
     {
         if ( ! $this->collection) {
             // TODO: Throw an exception and/or return an error message
@@ -184,7 +184,7 @@ class WorkshopController extends Controller
      *
      * @return request
      */
-    public function entryUpdate()
+    public function postEntryUpdate()
     {
         return $this->update();
     }
@@ -194,7 +194,7 @@ class WorkshopController extends Controller
      *
      * @return request
      */
-    public function pageCreate()
+    public function postPageCreate()
     {
         $validator = $this->runValidation();
 
@@ -216,7 +216,7 @@ class WorkshopController extends Controller
      *
      * @return request
      */
-    public function pageUpdate()
+    public function postPageUpdate()
     {
         return $this->update();
     }
@@ -226,7 +226,7 @@ class WorkshopController extends Controller
      *
      * @return request
      */
-    public function globalUpdate()
+    public function postGlobalUpdate()
     {
         return $this->update();
     }
