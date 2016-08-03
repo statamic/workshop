@@ -126,10 +126,8 @@ class WorkshopController extends Controller
      *
      * @return void
      */
-    public function __construct()
+    public function init()
     {
-        parent::__construct();
-
         if ( ! $this->isAllowed()) {
             return redirect()->back();
         }
@@ -144,7 +142,6 @@ class WorkshopController extends Controller
 
         $this->slugify();
     }
-
 
     /**
      * Create an entry in a collection.
