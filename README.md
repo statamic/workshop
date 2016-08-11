@@ -1,13 +1,4 @@
-# Workshop ![Statamic 2.1](https://img.shields.io/badge/statamic-2.1-blue.svg?style=flat-square)
-> The do-it-all-for-you front-end content creation and updatification addon.
-
-## Overview
-
-Workshop gives you the ability to create and edit Entries, Pages, and Globals
-on the _front-end_ of your Statamic 2 website though a handful of nice and
-easy-to-use Tags.
-
-## Installation
+## Installing
 
 - Unzip the package into `/site/addons/Workshop`.
 - Yeah, that's it.
