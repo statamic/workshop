@@ -1,4 +1,4 @@
-# Workshop ![Statamic 2.1](https://img.shields.io/badge/statamic-2.0-blue.svg?style=flat-square)
+# Workshop ![Statamic 2.1](https://img.shields.io/badge/statamic-2.1-blue.svg?style=flat-square)
 > The do-it-all-for-you front-end content creation and updatification addon.
 
 ## Overview
