@@ -8,6 +8,7 @@ use Statamic\API\Entry;
 use Statamic\API\Helper;
 use Statamic\API\Content;
 use Statamic\API\Globals;
+use Statamic\API\User;
 use Statamic\Extend\Tags;
 use Stringy\StaticStringy as Stringy;
 
@@ -28,7 +29,8 @@ class WorkshopTags extends Tags
 		'parent',
         'redirect',
         'slug',
-        'slugify'
+        'slugify',
+        'username'//DANIELSON
     ];
 
     /**
@@ -110,7 +112,7 @@ class WorkshopTags extends Tags
     }
 
     /**
-     * The {{ workshop:entry:create }} tag
+     * The {{ workshop:page:edit }} tag
      *
      * @return string
      */
@@ -121,6 +123,26 @@ class WorkshopTags extends Tags
         $data = array_merge($this->getErrorsAndSuccess(), $page->data());
 
         $html = $this->formOpen('pageUpdate');
+        $html .= $this->getMetaFields();
+        $html .= $this->parse($data);
+        $html .= '</form>';
+
+        return $html;
+    }
+
+    //DANIELSON
+    /**
+     * The {{ workshop:user:edit }} tag
+     *
+     * @return string
+     */
+    public function userEdit()
+    {
+        $user = $this->getUser();
+
+        $data = array_merge($this->getErrorsAndSuccess(), $user->data());
+
+        $html = $this->formOpen('userUpdate');
         $html .= $this->getMetaFields();
         $html .= $this->parse($data);
         $html .= '</form>';
@@ -178,6 +200,25 @@ class WorkshopTags extends Tags
         $this->id = $content->id();
 
         return $content;
+    }
+
+    //DANIELSON
+    /**
+     * Get user content by id, falling back to the current user
+     *
+     * @return Content
+     */
+    private function getUser()
+    {
+        $username = $this->get('username');
+
+        if ($username) {
+            $user = User::whereUsername($username);
+        } else {
+            $user = User::getCurrent();
+        }
+
+        return $user;
     }
 
     /**

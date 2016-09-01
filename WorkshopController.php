@@ -10,6 +10,7 @@ use Statamic\API\Entry;
 use Statamic\API\Content;
 use Statamic\API\Request;
 use Statamic\API\Fieldset;
+use Statamic\API\User; //DANIELSON
 use Statamic\Extend\Listener;
 use Illuminate\Http\Response;
 use Statamic\Extend\Controller;
@@ -47,7 +48,9 @@ class WorkshopController extends Controller
         'parent',
         'redirect',
         'slug',
-        'slugify'
+        'slugify',
+        'user', //DANIELSON
+        'username' //DANIELSON
     ];
 
     /**
@@ -119,6 +122,22 @@ class WorkshopController extends Controller
      * @var string
      */
     private $slugify = 'title';
+
+    //DANIELSON
+    /**
+     * The user. By default will be current user.
+     *
+     * @var string
+     */
+    private $user;
+
+    //DANIELSON
+    /**
+     * The username of the person being edited.
+     *
+     * @var string
+     */
+    private $username;
 
     /**
      * Manipulate common request data across all types
@@ -218,6 +237,17 @@ class WorkshopController extends Controller
         return $this->update();
     }
 
+    //DANIELSON
+    /**
+     * Update a user.
+     *
+     * @return request
+     */
+    public function postUserUpdate()
+    {
+        return $this->update();
+    }
+
     /**
      * Update a global.
      *
@@ -241,11 +271,23 @@ class WorkshopController extends Controller
             return back()->withInput()->withErrors($validator);
         }
 
-        $data = array_merge($this->factory->data(), $this->fields);
+        if ($this->username) {//DANIELSON - just remove the if/else to reset this
+            $user = $this->getUser();
+            $data = array_merge($user->data(), $this->fields);
+            $user->data($data);
+            $user->save();
 
-        $this->factory->data($data);
+            if ($this->redirect) {//DANIELSON - stole this bit from the save() function, below
+                return redirect($this->getRedirect());
+            };
+            return redirect()->back();
 
-        return $this->save();
+        } else {
+            $data = array_merge($this->factory->data(), $this->fields);
+            $this->factory->data($data);
+            return $this->save();
+        }
+
     }
 
     /**
@@ -255,8 +297,11 @@ class WorkshopController extends Controller
      */
     private function runValidation()
     {
-        $fields = array_merge($this->fields, ['slug' => 'required']);
-
+        if ($this->username) {//DANIELSON
+            $fields = array_merge($this->fields, ['username' => 'required']);
+        } else {
+            $fields = array_merge($this->fields, ['slug' => 'required']);
+        }
         $builder = new ValidationBuilder(['fields' => $fields], $this->fieldset);
 
         $builder->build();
@@ -273,7 +318,7 @@ class WorkshopController extends Controller
     private function save()
     {
         $this->factory->ensureId();
-        
+
         $this->factory->save();
 
         $this->flash->put('success', true);
@@ -292,6 +337,25 @@ class WorkshopController extends Controller
         }
     }
 
+    //DANIELSON
+    /**
+     * Get user content by id, falling back to the current user
+     *
+     * @return Content
+     */
+    private function getUser()
+    {
+        $username = $this->username;
+
+        if ($username) {
+            $user = User::whereUsername($username);
+        } else {
+            $user = User::getCurrent();
+        }
+
+        return $user;
+    }
+
     /**
      * Set the slug based on another field. Defaults to title.
      *
@@ -299,6 +363,10 @@ class WorkshopController extends Controller
      */
     private function slugify()
     {
+        if ($this->username) {//DANIELSON
+            $slugify = 'username';
+        }
+
         $sluggard = array_get($this->fields, $this->slugify, current($this->fields));
 
         $this->slug = Stringy::slugify($sluggard);
@@ -350,6 +418,9 @@ class WorkshopController extends Controller
         // Set that fieldset
         if ($this->fieldset) {
             $this->fieldset = Fieldset::get($this->fieldset);
+        } elseif ($this->username) {//DANIELSON
+            $user = $this->getUser();
+            $this->fieldset = $user->fieldset();
         } elseif ($this->factory) {
             $this->fieldset = $this->factory->fieldset();
         } elseif ($this->collection) {
