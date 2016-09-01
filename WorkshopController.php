@@ -272,6 +272,8 @@ class WorkshopController extends Controller
      */
     private function save()
     {
+        $this->factory->ensureId();
+        
         $this->factory->save();
 
         $this->flash->put('success', true);
