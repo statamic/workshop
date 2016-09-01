@@ -276,8 +276,6 @@ class WorkshopController extends Controller
 
         $this->flash->put('success', true);
 
-        event('content.saved', $this->factory);
-
         if ($this->redirect) {
             return redirect($this->getRedirect());
         };
