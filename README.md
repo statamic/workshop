@@ -28,7 +28,6 @@ When creating an entry, the only required parameter is the name of the collectio
     <input type="text" name="title" value="{{ old:title }}">
     <input type="submit">
 {{ /workshop:entry:create }}
-
 ```
 
 ### Entry:Edit
@@ -76,30 +75,84 @@ All tags respect the same parameters, given the appropriate context.
 Each parameter may instead be set as a form input field, but
 the parameter will always override. For safety.
 
-- `id` The page or entry's ID to edit. Will default to current URL if not set.
-- `collection` The handle/slug of collection. **Required** if creating/editing entries.
-- `fieldset` Will fall back to the appropriate default fieldset if not set.
-- `url` When editing, you can pass the URL of the file you want to edit.
-- `date` If working with a date ordered Collection. Defaults to `today`.
-- `order` If working with pages or ordered Collections, sets the order.
-- `set` If working with Globals, the Globalset name.
-- `parent` Sets the parent page, when creating Pages.
-- `published` Sets the published state. Defaults to `true`.
-- `slug` Sets the slug of the entry or page.
-- `slugify` Assigns a field to be automatically slugified to make the slug.
-- `attr` Set any HTML attributes on the `<form>` tag. You can set multiple by pipe delimiting them. eg. `attr="class:pretty-form|id:contact"``
-- `redirect` The location your user will be taken after a successful form submission. If left blank, the user will stay on the same page.
+`id`
+
+The page or entry's ID to edit. Will default to current URL if not set.
+
+`collection`
+
+The handle/slug of collection. **Required** if creating/editing entries.
+
+`fieldset`
+
+Will fall back to the appropriate default fieldset if not set.
+
+`url`
+
+When editing, you can pass the URL of the file you want to edit.
+
+`date`
+
+If working with a date ordered Collection. Defaults to `today`.
+
+`order`
+
+If working with pages or ordered Collections, sets the order.
+
+`set`
+
+If working with Globals, the Globalset name.
+
+`parent`
+
+Sets the parent page, when creating Pages.
+
+`published`
+Sets the published state. Defaults to `true`.
+
+`slug`
+
+Sets the slug of the entry or page.
+
+`slugify`
+
+Assigns a field to be automatically slugified to make the slug.
+
+`attr`
+
+Set any HTML attributes on the `<form>` tag. You can set multiple by pipe delimiting them. eg.  `attr="class:pretty-form|id:contact"`
+
+`redirect`
+
+The location your user will be taken after a successful form submission. If left blank, the user will stay on the same page.
 
 ## Variables
 
-- `old` An array of previous form input data, used for repopulating the form after a submission with errors, without losing your input. E.g. `{{ old:title }}`, `{{ old:content }}`.
-- `success` This will be `true` if the form was submitted successfully.
-- `errors` A tag pair of error messages return by validation. Example: `{{ errors }}<li>{{ value }}</li>{{ /errors }}`
+`old`
+
+An array of previous form input data, used for repopulating the form after a submission with errors, without losing your input. E.g. `{{ old:title }}`, `{{ old:content }}`.
+
+`success`
+
+This will be `true` if the form was submitted successfully.
+
+`errors`
+
+A tag pair of error messages return by validation. Example:
+```
+{{ errors }}
+    <li>{{ value }}</li>
+{{ /errors }}
+```
 
 ## Settings
 
-All settings can be managed in the Addons > Workshop > Settings screen, or by setting them in
-`site/addons/workshop.yaml`. The defaults all lean towards security over flexibility.
+All settings can be managed in the Addons > Workshop > Settings screen, or by setting them in `site/addons/workshop.yaml`. The defaults all lean towards security over flexibility.
 
-- `enforce_auth` Only allow Workshop features to work when logged in. Defaults to `true`.
-- `whitelist`: Only save data in fields that match those in your fieldset. Defaults to `true`.
+`enforce_auth`
+
+Only allow Workshop features to work when logged in. Defaults to `true`.
+
+`whitelist`
+
+Only save data in fields that match those in your fieldset. Defaults to `true`.
