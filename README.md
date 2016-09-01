@@ -17,7 +17,8 @@ When editing, if you don't specify a `url` or `id` to edit, it will assume the c
 - [workshop:entry:edit](#entryedit)
 - [workshop:page:create](#pagecreate)
 - [workshop:page:edit](#pageedit)
-- [workshop:global:edit](#pageedit)
+- [workshop:global:edit](#globaledit)
+- [workshop:user:edit](#useredit)
 
 ### Entry:Create
 
@@ -51,6 +52,7 @@ If you don't set a `parent` param/value, will create a top-level Page.
 ```
 
 ### Page:Edit
+
 You can use `id` or `url` to pick which page to edit. If unset, will assume current URL.
 ```
 {{ workshop:page:edit id="987xyz" }}
@@ -67,6 +69,16 @@ Give the `set` name to pick which Global set to edit. If unset, will assume the 
     <input type="text" name="site_name" value="{{ site_name }}">
     <input type="submit">
 {{ /workshop:global:edit }}
+```
+
+### User:Edit
+
+You can use `username` to pick which user to edit. If unset, will assume current logged-in user. Should only be used when `enforce_auth` is toggled on.
+```
+{{ workshop:user:edit username="johndoe" }}
+    <input type="text" name="first_name" value="{{ first_name }}">
+    <input type="submit">
+{{ /workshop:user:create }}
 ```
 
 ## Parameters
@@ -117,6 +129,14 @@ Sets the slug of the entry or page.
 `slugify`
 
 Assigns a field to be automatically slugified to make the slug.
+
+`user`
+
+The user to be edited. Defaults to logged-in user.
+
+`username`
+
+Identifies the user to edited. Defaults to current logged in user.
 
 `attr`
 
