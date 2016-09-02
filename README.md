@@ -24,7 +24,7 @@ When editing, if you don't specify a `url` or `id` to edit, it will assume the c
 When creating an entry, the only required parameter is the name of the collection.
 
 ```
-{{ workshop:entry:create }}
+{{ workshop:entry:create collection="words" }}
     <input type="text" name="title" value="{{ old:title }}">
     <input type="submit">
 {{ /workshop:entry:create }}
