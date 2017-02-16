@@ -316,7 +316,7 @@ class WorkshopController extends Controller
         // Filter the HTML form data first
         foreach ($this->fields as $key => $field) {
             if (in_array($key, $this->meta)) {
-                $this->{$key} = $field;
+                $this->{$key} = $this->formatValue($field);
                 unset($this->fields[$key]);
             }
         }
@@ -328,10 +328,28 @@ class WorkshopController extends Controller
 
             foreach ($meta as $key => $field) {
                 if (in_array($key, $this->meta)) {
-                    $this->{$key} = $field;
+                    $this->{$key} = $this->formatValue($field);
                 }
             }
             unset($this->fields['_meta']);
+        }
+    }
+
+    /**
+     * Format a value
+     *
+     * @param mixed $value
+     * @return mixed
+     */
+    private function formatValue($value)
+    {
+        switch ($value) {
+            case 'true':
+                return true;
+            case 'false':
+                return false;
+            default:
+                return $value;
         }
     }
 
