@@ -163,6 +163,7 @@ class WorkshopController extends Controller
 
         $this->factory = Entry::create($this->slug)
                         ->collection($this->collection->path())
+                        ->published($this->published)
                         ->with($this->fields);
 
         if ($this->collection->order() == 'date') {
