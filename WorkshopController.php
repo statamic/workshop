@@ -294,6 +294,8 @@ class WorkshopController extends Controller
             return back()->withInput()->withErrors($validator);
         }
 
+        $this->uploadFiles();
+
         $data = array_merge($this->content->data(), $this->whitelist($this->fields));
 
         $this->content->data($data);
