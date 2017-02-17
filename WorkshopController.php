@@ -155,7 +155,7 @@ class WorkshopController extends Controller
             dd('Come on now. You need a collection.');
         }
 
-        $validator = $this->runValidation();
+        $validator = $this->getValidator();
 
         if ($validator->fails()) {
             return back()->withInput()->withErrors($validator, 'workshop');
@@ -194,7 +194,7 @@ class WorkshopController extends Controller
      */
     public function postPageCreate()
     {
-        $validator = $this->runValidation();
+        $validator = $this->getValidator();
 
         if ($validator->fails()) {
             return back()->withInput()->withErrors($validator);
@@ -236,7 +236,7 @@ class WorkshopController extends Controller
      */
     private function update()
     {
-        $validator = $this->runValidation();
+        $validator = $this->getValidator();
 
         if ($validator->fails()) {
             return back()->withInput()->withErrors($validator);
@@ -254,7 +254,7 @@ class WorkshopController extends Controller
      *
      * @return mixed
      */
-    private function runValidation()
+    private function getValidator()
     {
         $fields = array_merge($this->fields, ['slug' => 'required']);
 
@@ -274,7 +274,7 @@ class WorkshopController extends Controller
     private function save()
     {
         $this->factory->ensureId();
-        
+
         $this->factory->save();
 
         $this->flash->put('success', true);
