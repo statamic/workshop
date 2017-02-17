@@ -2,6 +2,7 @@
 
 namespace Statamic\Addons\Workshop;
 
+use Illuminate\Http\RedirectResponse;
 use Statamic\API\Collection;
 use Statamic\API\Config;
 use Statamic\API\Str;
@@ -22,18 +23,11 @@ use Statamic\CP\Publish\ValidationBuilder;
 class WorkshopController extends Controller
 {
     /**
-     * The type of content being targeted. Page, entry, etc.
+     * The content object we're dealing with. Page, Entry, etc.
      *
-     * @var string
+     * @var \Statamic\Contracts\Data\Content\Content
      */
-    private $contentType;
-
-    /**
-     * The factory object to work with.
-     *
-     * @var array
-     */
-    public $factory;
+    public $content;
 
     /**
      * The data with which to create a content file.
@@ -52,6 +46,13 @@ class WorkshopController extends Controller
     private $meta;
 
     /**
+     * The fieldset being used for the content.
+     *
+     * @var \Statamic\Contracts\CP\Fieldset
+     */
+    private $fieldset;
+
+    /**
      * Manipulate common request data across all types
      * of content, big and small.
      *
@@ -63,44 +64,43 @@ class WorkshopController extends Controller
             return redirect()->back();
         }
 
-        // Get the content type from the URI.
-        // For example, /!/Workshop/pageCreate would be "page"
-        $this->contentType = explode('_', Str::snake(last(explode('/', $this->request->path()))))[0];
-
         // Set all the meta attributes and their defaults.
         $this->meta = [
-            'id'         => null,          // The content's id
-            'collection' => null,  // An entry's collection. Where it belongs.
-            'date'       => null,        // An entry's optional date.
-            'fieldset'   => $this->getDefaultFieldset(),    // The fieldset. The thing that rules them all.
+            'id'         => null,       // The content's id
+            'collection' => null,       // An entry's collection. Where it belongs.
+            'date'       => null,       // An entry's optional date.
+            'fieldset'   => null,       // The fieldset. The thing that rules them all.
             'order'      => null,       // An entry or page's Order key.
-            'published'  => true,   // The published status of the content.
-            'parent'     => '/',       // A page's optional parent page.
-            'redirect'   => null,    // The URL to redirect the user to upon success
-            'slug'       => null,        // The content's slug. By default will be a slugifed 'title'.
-            'slugify'    => 'title',  // The field to slugify to create the slug.
+            'published'  => true,       // The published status of the content.
+            'parent'     => '/',        // A page's optional parent page.
+            'redirect'   => null,       // The URL to redirect the user to upon success
+            'slug'       => null,       // The content's slug. By default will be a slugifed 'title'.
+            'slugify'    => 'title',    // The field to slugify to create the slug.
         ];
 
-        // Set the fields to be added to the content file, then filter out any meta fields.
-        $this->fields = Request::except(['_token']);
-        $this->filter();
-
-        // Initialize the content factory if editing.
-        $this->startFactory();
-
-        $this->setFieldsetAndMore();
+        $this->initializeFields();
 
         $this->slugify();
+    }
+
+    private function initializeFields()
+    {
+        $this->fields = Request::except(['_token']);
+
+        $this->filter();
+
+        $this->fields = array_filter($this->fields);
     }
 
     /**
      * Get the default fieldset for the content type
      *
+     * @param string $type
      * @return string
      */
-    private function getDefaultFieldset()
+    private function getDefaultFieldset($type)
     {
-        $typeDefault = Config::get("theming.default_{$this->contentType}_fieldset");
+        $typeDefault = Config::get("theming.default_{$type}_fieldset");
 
         if (Fieldset::exists($typeDefault)) {
             return $typeDefault;
@@ -112,33 +112,38 @@ class WorkshopController extends Controller
     /**
      * Create an entry in a collection.
      *
-     * @return request
+     * @return RedirectResponse
      */
     public function postEntryCreate()
     {
         if ( ! $this->meta['collection']) {
-            // TODO: Throw an exception and/or return an error message
-            dd('Come on now. You need a collection.');
+            return back()->withInput()->withErrors(['A collection is required.'], 'workshop');
         }
 
-        $validator = $this->getValidator();
+        $collection = Collection::whereHandle($this->meta['collection']);
 
+        // If a fieldset was specified, use that, otherwise use the one from the collection.
+        $this->fieldset = ($this->meta['fieldset']) ? Fieldset::get($this->meta['fieldset']) : $collection->fieldset();
+
+        $validator = $this->getValidator();
         if ($validator->fails()) {
             return back()->withInput()->withErrors($validator, 'workshop');
         }
 
-        $this->factory = Entry::create($this->meta['slug'])
-                        ->collection($this->meta['collection']->path())
-                        ->published($this->meta['published'])
-                        ->with($this->fields);
+        $factory = Entry::create($this->meta['slug'])
+            ->collection($collection->path())
+            ->published($this->meta['published'])
+            ->with($this->whitelist($this->fields));
 
-        if ($this->meta['collection']->order() == 'date') {
-            $this->factory->date($this->meta['date']);
+        // If the collection is date based, set the date to what was specified (if nothing was specified the
+        // current time will be used). If the collection is not date based, set the order if one was provided.
+        if ($collection->order() == 'date') {
+            $factory->date($this->meta['date']);
         } elseif ($this->meta['order']) {
-            $this->factory->order($this->meta['order']);
+            $factory->order($this->meta['order']);
         }
 
-        $this->factory = $this->factory->get();
+        $this->content = $factory->get();
 
         return $this->save();
     }
@@ -146,31 +151,39 @@ class WorkshopController extends Controller
     /**
      * Update an entry in a collection.
      *
-     * @return request
+     * @return RedirectResponse
      */
     public function postEntryUpdate()
     {
+        // If a fieldset was specified, use that. Otherwise, use the associated entry's fieldset.
+        $this->fieldset = ($this->meta['fieldset'])
+            ? Fieldset::get($this->meta['fieldset'])
+            : $this->content->fieldset();
+
         return $this->update();
     }
 
     /**
      * Create a page.
      *
-     * @return request
+     * @return RedirectResponse
      */
     public function postPageCreate()
     {
-        $validator = $this->getValidator();
+        $this->fieldset = Fieldset::get(
+            $this->meta['fieldset'] ?: $this->getDefaultFieldset('page')
+        );
 
+        $validator = $this->getValidator();
         if ($validator->fails()) {
             return back()->withInput()->withErrors($validator);
         }
 
         $url = URL::assemble($this->meta['parent'], $this->meta['slug']);
 
-        $this->factory = Page::create($url)
-                        ->with($this->fields)
-                        ->get();
+        $this->content = Page::create($url)
+            ->with($this->whitelist($this->fields))
+            ->get();
 
         return $this->save();
     }
@@ -178,17 +191,22 @@ class WorkshopController extends Controller
     /**
      * Update a page.
      *
-     * @return request
+     * @return RedirectResponse
      */
     public function postPageUpdate()
     {
+        // If a fieldset was specified, use that. Otherwise, use the associated entry's fieldset.
+        $this->fieldset = ($this->meta['fieldset'])
+            ? Fieldset::get($this->meta['fieldset'])
+            : $this->content->fieldset();
+
         return $this->update();
     }
 
     /**
      * Update a global.
      *
-     * @return request
+     * @return RedirectResponse
      */
     public function postGlobalUpdate()
     {
@@ -198,7 +216,7 @@ class WorkshopController extends Controller
     /**
      * Update a content file with new data.
      *
-     * @return request
+     * @return RedirectResponse
      */
     private function update()
     {
@@ -208,9 +226,9 @@ class WorkshopController extends Controller
             return back()->withInput()->withErrors($validator);
         }
 
-        $data = array_merge($this->factory->data(), $this->fields);
+        $data = array_merge($this->content->data(), $this->whitelist($this->fields));
 
-        $this->factory->data($data);
+        $this->content->data($data);
 
         return $this->save();
     }
@@ -224,7 +242,7 @@ class WorkshopController extends Controller
     {
         $fields = $this->fields;
 
-        $builder = new ValidationBuilder(['fields' => $fields], $this->meta['fieldset']);
+        $builder = new ValidationBuilder(['fields' => $fields], $this->fieldset);
 
         $builder->build();
 
@@ -239,16 +257,15 @@ class WorkshopController extends Controller
     }
 
     /**
-     * Save the factory object, run the hook,
-     * and redirect as needed.
+     * Save the content object, run the hook, and redirect as needed.
      *
-     * @return mixed
+     * @return RedirectResponse
      */
     private function save()
     {
-        $this->factory->ensureId();
+        $this->content->ensureId();
 
-        $this->factory->save();
+        $this->content->save();
 
         $this->flash->put('success', true);
 
@@ -257,13 +274,6 @@ class WorkshopController extends Controller
         };
 
         return redirect()->back();
-    }
-
-    private function startFactory()
-    {
-        if ($this->meta['id']) {
-            $this->factory = Content::find($this->meta['id']);
-        }
     }
 
     /**
@@ -328,43 +338,33 @@ class WorkshopController extends Controller
     }
 
     /**
-     * Find and set the Fieldset object, if there is one.
+     * Clean the submitted fields and only leave the whitelisted ones.
      *
-     * @return void
+     * @param array $fields
+     * @return array
      */
-    private function setFieldsetAndMore()
+    private function whitelist($fields)
     {
-        // If a collection was specified, change from the string to the actual object.
-        if ($this->meta['collection']) {
-            $this->meta['collection'] = Collection::whereHandle($this->meta['collection']);
+        if (! $this->getConfig('whitelist')) {
+            return $fields;
         }
 
-        // Set that fieldset
-        if ($this->meta['fieldset']) {
-            $this->meta['fieldset'] = Fieldset::get($this->meta['fieldset']);
-        } elseif ($this->factory) {
-            $this->meta['fieldset'] = $this->factory->fieldset();
-        } elseif ($this->meta['collection']) {
-            $this->meta['fieldset'] = $this->meta['collection']->fieldset();
-        }
+        $whitelist = array_keys($this->fieldset->fields());
 
-        // Drop any field that's not in the fieldset
-        if ($this->meta['fieldset'] && $this->getConfig('whitelist')) {
-            $whitelist = array_keys($this->meta['fieldset']->fields());
-            $whitelist[] = 'title';
-            $this->fields = array_intersect_key($this->fields, array_flip($whitelist));
-        }
+        $whitelist[] = 'title';
+
+        return array_intersect_key($this->fields, array_flip($whitelist));
     }
 
     /**
      * Find and set the redirect URL.
      *
-     * @return void
+     * @return string
      */
     private function getRedirect()
     {
         if ($this->meta['redirect'] == 'url') {
-            return $this->factory->urlPath();
+            return $this->content->urlPath();
         }
 
         return $this->meta['redirect'];
