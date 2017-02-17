@@ -247,6 +247,8 @@ class WorkshopController extends Controller
             return back()->withInput()->withErrors($validator);
         }
 
+        $this->uploadFiles();
+
         $url = URL::assemble($this->meta['parent'], $this->meta['slug']);
 
         $this->content = Page::create($url)
