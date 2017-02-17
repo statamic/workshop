@@ -166,7 +166,6 @@ class WorkshopController extends Controller
             return back()->withInput()->withErrors($validator);
         }
 
-
         $url = URL::assemble($this->meta['parent'], $this->meta['slug']);
 
         $this->factory = Page::create($url)
@@ -263,7 +262,7 @@ class WorkshopController extends Controller
     private function startFactory()
     {
         if ($this->meta['id']) {
-            $this->factory = Content::uuidRaw($this->meta['id']);
+            $this->factory = Content::find($this->meta['id']);
         }
     }
 
