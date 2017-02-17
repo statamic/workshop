@@ -32,6 +32,13 @@ class WorkshopController extends Controller
     public $fields;
 
     /**
+     * The fieldset being used for the content.
+     *
+     * @var \Statamic\Contracts\CP\Fieldset
+     */
+    private $fieldset;
+
+    /**
      * Meta attributes that describe the content, but will not necessarily be saved to file.
      *
      * These can be set through html fields, or tag parameters. Parameters will take priority.
@@ -50,13 +57,6 @@ class WorkshopController extends Controller
         'slug'       => null,
         'slugify'    => 'title',
     ];
-
-    /**
-     * The fieldset being used for the content.
-     *
-     * @var \Statamic\Contracts\CP\Fieldset
-     */
-    private $fieldset;
 
     /**
      * Manipulate common request data across all types
