@@ -71,17 +71,38 @@ class WorkshopController extends Controller
         }
 
         $this->initializeFields();
-
-        $this->slugify();
+        $this->initializeSlug();
     }
 
+    /**
+     * Initialize the fields that were submitted.
+     *
+     * @return void
+     */
     private function initializeFields()
     {
-        $this->fields = Request::except(['_token']);
+        $fields = $this->filter(Request::except(['_token']));
 
-        $this->filter();
+        $this->fields = array_filter($fields);
+    }
 
-        $this->fields = array_filter($this->fields);
+    /**
+     * Make sure we have a slug.
+     *
+     * @return void
+     */
+    private function initializeSlug()
+    {
+        // If the slug was set manually, either through a field or through the tag parameter, we'll just use that.
+        if ($this->meta['slug']) {
+            return;
+        }
+
+        // Get the value from which we want to slugify. By default it's "title".
+        // If it was overridden and the field doesn't exist for whatever reason, we'll use the first field.
+        $sluggard = array_get($this->fields, $this->meta['slugify'], current($this->fields));
+
+        $this->meta['slug'] = Stringy::slugify($sluggard);
     }
 
     /**
@@ -269,46 +290,34 @@ class WorkshopController extends Controller
     }
 
     /**
-     * Set the slug based on another field. Defaults to title.
+     * Filter out any meta fields from the submitted data and assign them within the meta array.
      *
-     * @return void
+     * @param array $fields
+     * @return array
      */
-    private function slugify()
-    {
-        $sluggard = array_get($this->fields, $this->meta['slugify'], current($this->fields));
-
-        $this->meta['slug'] = Stringy::slugify($sluggard);
-    }
-
-    /**
-     * Filter out any meta fields from the request object and
-     * and assign them to class variables, leaving you with
-     * a nice and clean $fields variable to work with.
-     *
-     * @return void
-     */
-    private function filter()
+    private function filter($fields)
     {
         // Filter the HTML form data first
-        foreach ($this->fields as $key => $field) {
+        foreach ($fields as $key => $field) {
             if (in_array($key, array_keys($this->meta))) {
                 $this->meta[$key] = $this->formatValue($field);
-                unset($this->fields[$key]);
+                unset($fields[$key]);
             }
         }
 
-        // And override those with special meta fields set
-        // on the tag itself as parameters
-        if (array_get($this->fields, '_meta')) {
-            $meta = Crypt::decrypt($this->fields['_meta']);
+        // And override those with special meta fields set on the tag itself as parameters
+        if (array_get($fields, '_meta')) {
+            $meta = Crypt::decrypt($fields['_meta']);
 
             foreach ($meta as $key => $field) {
                 if (in_array($key, array_keys($this->meta))) {
                     $this->meta[$key] = $this->formatValue($field);
                 }
             }
-            unset($this->fields['_meta']);
+            unset($fields['_meta']);
         }
+
+        return $fields;
     }
 
     /**
