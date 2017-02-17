@@ -256,13 +256,20 @@ class WorkshopController extends Controller
      */
     private function getValidator()
     {
-        $fields = array_merge($this->fields, ['slug' => 'required']);
+        $fields = $this->fields;
 
         $builder = new ValidationBuilder(['fields' => $fields], $this->fieldset);
 
         $builder->build();
 
-        return \Validator::make(['fields' => $fields], $builder->rules());
+        $rules = $builder->rules();
+
+        // Ensure the title (or slugify-able field, really) is required.
+        $sluggard = explode('|', array_get($rules, "fields.{$this->slugify}"));
+        $sluggard[] = 'required';
+        $rules["fields.{$this->slugify}"] = join('|', $sluggard);
+
+        return \Validator::make(['fields' => $fields], $rules, [], $builder->attributes());
     }
 
     /**
