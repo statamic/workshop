@@ -4,9 +4,12 @@ namespace Statamic\Addons\Workshop;
 
 use Statamic\API\URL;
 use Statamic\API\Page;
+use Statamic\API\Path;
+use Statamic\API\Asset;
 use Statamic\API\Crypt;
 use Statamic\API\Entry;
 use Statamic\API\Config;
+use Statamic\API\Content;
 use Statamic\API\Request;
 use Statamic\API\Fieldset;
 use Statamic\API\Collection;
@@ -14,6 +17,7 @@ use Statamic\Extend\Controller;
 use Stringy\StaticStringy as Stringy;
 use Illuminate\Http\RedirectResponse;
 use Statamic\CP\Publish\ValidationBuilder;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 
 class WorkshopController extends Controller
 {
@@ -143,6 +147,8 @@ class WorkshopController extends Controller
             return back()->withInput()->withErrors($validator, 'workshop');
         }
 
+        $this->uploadFiles();
+
         $factory = Entry::create($this->meta['slug'])
             ->collection($collection->path())
             ->published($this->meta['published'])
@@ -159,6 +165,53 @@ class WorkshopController extends Controller
         $this->content = $factory->get();
 
         return $this->save();
+    }
+
+    /**
+     * Upload files
+     *
+     * @return void
+     */
+    private function uploadFiles()
+    {
+        collect($this->request->files->all())->map(function ($file, $key) {
+            // Discard files that don't match to a field in the fieldset.
+            if (! $field = array_get($this->fieldset->fields(), $key)) {
+                return;
+            }
+
+            return $this->uploadFile($file, $field);
+
+        })->filter()->each(function ($url, $field) {
+            // Replace the field value with the URL from the newly uploaded asset.
+            $this->fields[$field] = $url;
+        });
+    }
+
+    /**
+     * Upload a single file
+     *
+     * @param UploadedFile $file  The uploaded file
+     * @param array $config       The field config
+     */
+    private function uploadFile($file, $config)
+    {
+        // Not an asset field? Bye.
+        if (array_get($config, 'type') !== 'assets') {
+            return;
+        }
+
+        $path = Path::assemble(array_get($config, 'folder'), $file->getClientOriginalName());
+
+        $asset = Asset::create()
+            ->container(array_get($config, 'container'))
+            ->path(ltrim($path, '/'))
+            ->get();
+
+        $asset->upload($file);
+        $asset->save();
+
+        return $asset->url();
     }
 
     /**
