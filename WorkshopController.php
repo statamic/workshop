@@ -3,6 +3,8 @@
 namespace Statamic\Addons\Workshop;
 
 use Statamic\API\Collection;
+use Statamic\API\Config;
+use Statamic\API\Str;
 use Statamic\API\URL;
 use Statamic\API\Form;
 use Statamic\API\Page;
@@ -19,6 +21,13 @@ use Statamic\CP\Publish\ValidationBuilder;
 
 class WorkshopController extends Controller
 {
+    /**
+     * The type of content being targeted. Page, entry, etc.
+     *
+     * @var string
+     */
+    private $contentType;
+
     /**
      * The factory object to work with.
      *
@@ -54,12 +63,16 @@ class WorkshopController extends Controller
             return redirect()->back();
         }
 
+        // Get the content type from the URI.
+        // For example, /!/Workshop/pageCreate would be "page"
+        $this->contentType = explode('_', Str::snake(last(explode('/', $this->request->path()))))[0];
+
         // Set all the meta attributes and their defaults.
         $this->meta = [
             'id'         => null,          // The content's id
             'collection' => null,  // An entry's collection. Where it belongs.
             'date'       => null,        // An entry's optional date.
-            'fieldset'   => null,    // The fieldset. The thing that rules them all.
+            'fieldset'   => $this->getDefaultFieldset(),    // The fieldset. The thing that rules them all.
             'order'      => null,       // An entry or page's Order key.
             'published'  => true,   // The published status of the content.
             'parent'     => '/',       // A page's optional parent page.
@@ -78,6 +91,22 @@ class WorkshopController extends Controller
         $this->setFieldsetAndMore();
 
         $this->slugify();
+    }
+
+    /**
+     * Get the default fieldset for the content type
+     *
+     * @return string
+     */
+    private function getDefaultFieldset()
+    {
+        $typeDefault = Config::get("theming.default_{$this->contentType}_fieldset");
+
+        if (Fieldset::exists($typeDefault)) {
+            return $typeDefault;
+        }
+
+        return Config::get('theming.default_fieldset');
     }
 
     /**
@@ -137,7 +166,8 @@ class WorkshopController extends Controller
             return back()->withInput()->withErrors($validator);
         }
 
-        $url = URL::assemble($this->parent, $this->slug);
+
+        $url = URL::assemble($this->meta['parent'], $this->meta['slug']);
 
         $this->factory = Page::create($url)
                         ->with($this->fields)
