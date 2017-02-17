@@ -2,6 +2,7 @@
 
 namespace Statamic\Addons\Workshop;
 
+use Statamic\API\Collection;
 use Statamic\API\URL;
 use Statamic\API\Form;
 use Statamic\API\Page;
@@ -30,101 +31,22 @@ class WorkshopController extends Controller
      *
      * @var array
      */
-    public $fields = [];
+    public $fields;
 
     /**
-     * Fields that should be stripped out as meta data.
+     * Meta attributes that describe the content, but will not necessarily be saved to file.
+     *
+     * These can be set through html fields, or tag parameters. Parameters will take priority.
      *
      * @var array
      */
-    private $meta = [
-        'id',
-        'collection',
-        'date',
-        'fieldset',
-        'order',
-        'published',
-        'parent',
-        'redirect',
-        'slug',
-        'slugify'
-    ];
-
-    /**
-     * The content's id
-     *
-     * @var string
-     */
-    private $id;
-
-    /**
-     * An entry's optional date.
-     *
-     * @var string
-     */
-    private $date;
-
-    /**
-     * The content's slug. By default will be a slugifed 'title'.
-     *
-     * @var string
-     */
-    private $slug;
-
-    /**
-     * An entry's collection. Where it belongs.
-     *
-     * @var string
-     */
-    private $collection;
-
-    /**
-     * The fieldset. The thing that rules them all.
-     *
-     * @var string
-     */
-    private $fieldset;
-
-    /**
-     * An entry or page's Order key.
-     *
-     * @var string
-     */
-    private $order;
-
-    /**
-     * A page's optional parent page.
-     *
-     * @var string
-     */
-    private $parent = '/';
-
-    /**
-     * The published status of the content.
-     *
-     * @var string
-     */
-    private $published = true;
-
-    /**
-     * The URL to redirect the user to upon success
-     *
-     * @var string
-     */
-    private $redirect;
-
-    /**
-     * The field to slugify to create the slug.
-     *
-     * @var string
-     */
-    private $slugify = 'title';
+    private $meta;
 
     /**
      * Manipulate common request data across all types
      * of content, big and small.
      *
-     * @return void
+     * @return mixed
      */
     public function init()
     {
@@ -132,10 +54,25 @@ class WorkshopController extends Controller
             return redirect()->back();
         }
 
-        $this->fields = Request::all();
+        // Set all the meta attributes and their defaults.
+        $this->meta = [
+            'id'         => null,          // The content's id
+            'collection' => null,  // An entry's collection. Where it belongs.
+            'date'       => null,        // An entry's optional date.
+            'fieldset'   => null,    // The fieldset. The thing that rules them all.
+            'order'      => null,       // An entry or page's Order key.
+            'published'  => true,   // The published status of the content.
+            'parent'     => '/',       // A page's optional parent page.
+            'redirect'   => null,    // The URL to redirect the user to upon success
+            'slug'       => null,        // The content's slug. By default will be a slugifed 'title'.
+            'slugify'    => 'title',  // The field to slugify to create the slug.
+        ];
 
+        // Set the fields to be added to the content file, then filter out any meta fields.
+        $this->fields = Request::all();
         $this->filter();
 
+        // Initialize the content factory if editing.
         $this->startFactory();
 
         $this->setFieldsetAndMore();
@@ -150,7 +87,7 @@ class WorkshopController extends Controller
      */
     public function postEntryCreate()
     {
-        if ( ! $this->collection) {
+        if ( ! $this->meta['collection']) {
             // TODO: Throw an exception and/or return an error message
             dd('Come on now. You need a collection.');
         }
@@ -161,15 +98,15 @@ class WorkshopController extends Controller
             return back()->withInput()->withErrors($validator, 'workshop');
         }
 
-        $this->factory = Entry::create($this->slug)
-                        ->collection($this->collection->path())
-                        ->published($this->published)
+        $this->factory = Entry::create($this->meta['slug'])
+                        ->collection($this->meta['collection']->path())
+                        ->published($this->meta['published'])
                         ->with($this->fields);
 
-        if ($this->collection->order() == 'date') {
-            $this->factory->date($this->date);
-        } elseif ($this->order) {
-            $this->factory->order($this->order);
+        if ($this->meta['collection']->order() == 'date') {
+            $this->factory->date($this->meta['date']);
+        } elseif ($this->meta['order']) {
+            $this->factory->order($this->meta['order']);
         }
 
         $this->factory = $this->factory->get();
@@ -258,16 +195,16 @@ class WorkshopController extends Controller
     {
         $fields = $this->fields;
 
-        $builder = new ValidationBuilder(['fields' => $fields], $this->fieldset);
+        $builder = new ValidationBuilder(['fields' => $fields], $this->meta['fieldset']);
 
         $builder->build();
 
         $rules = $builder->rules();
 
         // Ensure the title (or slugify-able field, really) is required.
-        $sluggard = explode('|', array_get($rules, "fields.{$this->slugify}"));
+        $sluggard = explode('|', array_get($rules, "fields.{$this->meta['slugify']}"));
         $sluggard[] = 'required';
-        $rules["fields.{$this->slugify}"] = join('|', $sluggard);
+        $rules["fields.{$this->meta['slugify']}"] = join('|', $sluggard);
 
         return \Validator::make(['fields' => $fields], $rules, [], $builder->attributes());
     }
@@ -286,7 +223,7 @@ class WorkshopController extends Controller
 
         $this->flash->put('success', true);
 
-        if ($this->redirect) {
+        if ($this->meta['redirect']) {
             return redirect($this->getRedirect());
         };
 
@@ -295,8 +232,8 @@ class WorkshopController extends Controller
 
     private function startFactory()
     {
-        if ($this->id) {
-            $this->factory = Content::uuidRaw($this->id);
+        if ($this->meta['id']) {
+            $this->factory = Content::uuidRaw($this->meta['id']);
         }
     }
 
@@ -307,9 +244,9 @@ class WorkshopController extends Controller
      */
     private function slugify()
     {
-        $sluggard = array_get($this->fields, $this->slugify, current($this->fields));
+        $sluggard = array_get($this->fields, $this->meta['slugify'], current($this->fields));
 
-        $this->slug = Stringy::slugify($sluggard);
+        $this->meta['slug'] = Stringy::slugify($sluggard);
     }
 
     /**
@@ -323,8 +260,8 @@ class WorkshopController extends Controller
     {
         // Filter the HTML form data first
         foreach ($this->fields as $key => $field) {
-            if (in_array($key, $this->meta)) {
-                $this->{$key} = $this->formatValue($field);
+            if (in_array($key, array_keys($this->meta))) {
+                $this->meta[$key] = $this->formatValue($field);
                 unset($this->fields[$key]);
             }
         }
@@ -335,8 +272,8 @@ class WorkshopController extends Controller
             $meta = Crypt::decrypt($this->fields['_meta']);
 
             foreach ($meta as $key => $field) {
-                if (in_array($key, $this->meta)) {
-                    $this->{$key} = $this->formatValue($field);
+                if (in_array($key, array_keys($this->meta))) {
+                    $this->meta[$key] = $this->formatValue($field);
                 }
             }
             unset($this->fields['_meta']);
@@ -368,23 +305,23 @@ class WorkshopController extends Controller
      */
     private function setFieldsetAndMore()
     {
-        // Set that collection
-        if ($this->collection) {
-            $this->collection = Content::collection($this->collection);
+        // If a collection was specified, change from the string to the actual object.
+        if ($this->meta['collection']) {
+            $this->meta['collection'] = Collection::whereHandle($this->meta['collection']);
         }
 
         // Set that fieldset
-        if ($this->fieldset) {
-            $this->fieldset = Fieldset::get($this->fieldset);
+        if ($this->meta['fieldset']) {
+            $this->meta['fieldset'] = Fieldset::get($this->meta['fieldset']);
         } elseif ($this->factory) {
-            $this->fieldset = $this->factory->fieldset();
-        } elseif ($this->collection) {
-            $this->fieldset = $this->collection->fieldset();
+            $this->meta['fieldset'] = $this->factory->fieldset();
+        } elseif ($this->meta['collection']) {
+            $this->meta['fieldset'] = $this->meta['collection']->fieldset();
         }
 
         // Drop any field that's not in the fieldset
-        if ($this->fieldset && $this->getConfig('whitelist')) {
-            $this->fields = array_intersect_key($this->fields, array_flip(array_keys($this->fieldset->fields())));
+        if ($this->meta['fieldset'] && $this->getConfig('whitelist')) {
+            $this->fields = array_intersect_key($this->fields, array_flip(array_keys($this->meta['fieldset']->fields())));
         }
     }
 
@@ -395,11 +332,11 @@ class WorkshopController extends Controller
      */
     private function getRedirect()
     {
-        if ($this->redirect == 'url') {
+        if ($this->meta['redirect'] == 'url') {
             return $this->factory->urlPath();
         }
 
-        return $this->redirect;
+        return $this->meta['redirect'];
     }
 
     /**
