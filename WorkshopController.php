@@ -38,7 +38,18 @@ class WorkshopController extends Controller
      *
      * @var array
      */
-    private $meta;
+    private $meta = [
+        'id'         => null,
+        'collection' => null,
+        'date'       => null,
+        'fieldset'   => null,
+        'order'      => null,
+        'published'  => true,
+        'parent'     => '/',
+        'redirect'   => null,
+        'slug'       => null,
+        'slugify'    => 'title',
+    ];
 
     /**
      * The fieldset being used for the content.
@@ -58,20 +69,6 @@ class WorkshopController extends Controller
         if ( ! $this->isAllowed()) {
             return redirect()->back();
         }
-
-        // Set all the meta attributes and their defaults.
-        $this->meta = [
-            'id'         => null,       // The content's id
-            'collection' => null,       // An entry's collection. Where it belongs.
-            'date'       => null,       // An entry's optional date.
-            'fieldset'   => null,       // The fieldset. The thing that rules them all.
-            'order'      => null,       // An entry or page's Order key.
-            'published'  => true,       // The published status of the content.
-            'parent'     => '/',        // A page's optional parent page.
-            'redirect'   => null,       // The URL to redirect the user to upon success
-            'slug'       => null,       // The content's slug. By default will be a slugifed 'title'.
-            'slugify'    => 'title',    // The field to slugify to create the slug.
-        ];
 
         $this->initializeFields();
 
