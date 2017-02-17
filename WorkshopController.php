@@ -82,7 +82,7 @@ class WorkshopController extends Controller
         ];
 
         // Set the fields to be added to the content file, then filter out any meta fields.
-        $this->fields = Request::all();
+        $this->fields = Request::except(['_token']);
         $this->filter();
 
         // Initialize the content factory if editing.
