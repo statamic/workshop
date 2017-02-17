@@ -321,7 +321,9 @@ class WorkshopController extends Controller
 
         // Drop any field that's not in the fieldset
         if ($this->meta['fieldset'] && $this->getConfig('whitelist')) {
-            $this->fields = array_intersect_key($this->fields, array_flip(array_keys($this->meta['fieldset']->fields())));
+            $whitelist = array_keys($this->meta['fieldset']->fields());
+            $whitelist[] = 'title';
+            $this->fields = array_intersect_key($this->fields, array_flip($whitelist));
         }
     }
 
