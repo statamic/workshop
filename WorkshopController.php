@@ -2,22 +2,17 @@
 
 namespace Statamic\Addons\Workshop;
 
-use Illuminate\Http\RedirectResponse;
-use Statamic\API\Collection;
-use Statamic\API\Config;
-use Statamic\API\Str;
 use Statamic\API\URL;
-use Statamic\API\Form;
 use Statamic\API\Page;
 use Statamic\API\Crypt;
 use Statamic\API\Entry;
-use Statamic\API\Content;
+use Statamic\API\Config;
 use Statamic\API\Request;
 use Statamic\API\Fieldset;
-use Statamic\Extend\Listener;
-use Illuminate\Http\Response;
+use Statamic\API\Collection;
 use Statamic\Extend\Controller;
 use Stringy\StaticStringy as Stringy;
+use Illuminate\Http\RedirectResponse;
 use Statamic\CP\Publish\ValidationBuilder;
 
 class WorkshopController extends Controller
