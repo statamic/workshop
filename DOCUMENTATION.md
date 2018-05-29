@@ -156,3 +156,16 @@ Only allow Workshop features to work when logged in. Defaults to `true`.
 `whitelist`
 
 Only save data in fields that match those in your fieldset. Defaults to `true`.
+
+## Troubleshooting
+
+**Submitting checkboxes or other array-type values are treated as strings**
+
+Be sure that the input's `name` attribute contains a pair of brackets.
+
+```
+<input type="checkbox" name="choices[]" value="first">
+<input type="checkbox" name="choices[]" value="second">
+```
+
+If you leave off the brackets, the form will only submit the last value.
