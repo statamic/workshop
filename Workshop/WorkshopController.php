@@ -260,7 +260,7 @@ class WorkshopController extends Controller
 
         $validator = $this->getValidator();
         if ($validator->fails()) {
-            return back()->withInput()->withErrors($validator);
+            return back()->withInput()->withErrors($validator, 'workshop');
         }
 
         $this->uploadFiles();
@@ -319,7 +319,7 @@ class WorkshopController extends Controller
         $validator = $this->getValidator();
 
         if ($validator->fails()) {
-            return back()->withInput()->withErrors($validator);
+            return back()->withInput()->withErrors($validator, 'workshop');
         }
 
         $this->uploadFiles();
