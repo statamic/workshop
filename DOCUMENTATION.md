@@ -184,7 +184,14 @@ fields:
 <input type="file" name="my_image_field" />
 ```
 
-**Currently, only single file fields are supported. (eg. assets with max_files: 1)**
+### Multiple files
+
+For asset fields with a `max_files` setting greater than `1` (or not set at all), you can indicate an array by adding square brackets to the input `name`.
+
+```
+Image One: <input type="file" name="my_image_field[]" />
+Image Two: <input type="file" name="my_image_field[]" />
+```
 
 ## Troubleshooting
 

@@ -174,17 +174,23 @@ class WorkshopController extends Controller
      */
     private function uploadFiles()
     {
-        collect($this->request->files->all())->map(function ($file, $key) {
+        collect($this->request->files->all())->map(function ($files, $key) {
             // Discard files that don't match to a field in the fieldset.
             if (! $field = array_get($this->fieldset->fields(), $key)) {
                 return;
             }
 
-            return $this->uploadFile($file, $field);
+            $files = collect(is_array($files) ? $files : [$files])
+                ->map(function ($file) use ($field) {
+                    return $this->uploadFile($file, $field);
+                });
 
-        })->filter()->each(function ($url, $field) {
-            // Replace the field value with the URL from the newly uploaded asset.
-            $this->fields[$field] = $url;
+            return (array_get($field, 'max_files') === 1)
+                ? $files->first()
+                : $files->all();
+        })->filter()->each(function ($value, $field) {
+            // Replace the field value with the value from the newly uploaded asset(s).
+            $this->fields[$field] = $value;
         });
     }
 
