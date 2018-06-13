@@ -148,6 +148,25 @@ class WorkshopTags extends Tags
     }
 
     /**
+     * The {{ workshop:page:delete }} tag
+     *
+     * @return string
+     */
+    public function pageDelete()
+    {
+        $page = $this->getContent();
+
+        $data = array_merge($this->getErrorsAndSuccess(), $page->data());
+
+        $html = $this->formOpen('pageDelete');
+        $html .= $this->getMetaFields();
+        $html .= $this->parse($data);
+        $html .= '</form>';
+
+        return $html;
+    }
+
+    /**
      * The {{ workshop:global:edit }} tag
      *
      * @return string

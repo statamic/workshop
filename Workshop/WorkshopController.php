@@ -244,17 +244,7 @@ class WorkshopController extends Controller
      */
     public function postEntryDelete()
     {
-        $this->content = Content::find($this->meta['id']);
-
-        $this->content->delete();
-
-        $this->flash->put('success', true);
-
-        if ($this->meta['redirect']) {
-            return redirect($this->getRedirect());
-        };
-
-        return redirect()->back();
+        return $this->delete();
     }
 
     /**
@@ -300,6 +290,16 @@ class WorkshopController extends Controller
     }
 
     /**
+     * Delete a page.
+     *
+     * @return RedirectResponse
+     */
+    public function postPageDelete()
+    {
+        return $this->delete();
+    }
+
+    /**
      * Update a global.
      *
      * @return RedirectResponse
@@ -329,6 +329,26 @@ class WorkshopController extends Controller
         $this->content->data($data);
 
         return $this->save();
+    }
+
+    /**
+     * Delete a content file.
+     *
+     * @return RedirectResponse
+     */
+    private function delete()
+    {
+        $this->content = Content::find($this->meta['id']);
+
+        $this->content->delete();
+
+        $this->flash->put('success', true);
+
+        if ($this->meta['redirect']) {
+            return redirect($this->getRedirect());
+        };
+
+        return redirect()->back();
     }
 
     /**
