@@ -1,6 +1,6 @@
 ## Installing
 
-- Unzip the package into `/site/addons/Workshop`.
+- Unzip and place the `Workshop` directory into `/site/addons`.
 - Yeah, that's it.
 
 ## Usage
