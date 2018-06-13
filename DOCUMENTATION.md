@@ -15,8 +15,10 @@ When editing, if you don't specify a `url` or `id` to edit, it will assume the c
 
 - [workshop:entry:create](#entrycreate)
 - [workshop:entry:edit](#entryedit)
+- [workshop:entry:delete](#entrydelete)
 - [workshop:page:create](#pagecreate)
 - [workshop:page:edit](#pageedit)
+- [workshop:page:delete](#pagedelete)
 - [workshop:global:edit](#pageedit)
 
 ### Entry:Create
@@ -40,6 +42,15 @@ You can use `id` or `url` to pick which entry to edit. If unset, will assume cur
 {{ /workshop:entry:edit }}
 ```
 
+### Entry:Delete
+
+You can use `id` or `url` to pick which entry to delete. If unset, will assume current URL.
+```
+{{ workshop:entry:delete id="123abc" }}
+    <input type="submit">
+{{ /workshop:entry:delete }}
+```
+
 ### Page:Create
 
 If you don't set a `parent` param/value, will create a top-level Page.
@@ -57,6 +68,15 @@ You can use `id` or `url` to pick which page to edit. If unset, will assume curr
     <input type="text" name="title" value="{{ title }}">
     <input type="submit">
 {{ /workshop:page:create }}
+```
+
+### Page:Delete
+
+You can use `id` or `url` to pick which page to delete. If unset, will assume current URL.
+```
+{{ workshop:page:delete id="123abc" }}
+    <input type="submit">
+{{ /workshop:page:delete }}
 ```
 
 ### Global:Edit
