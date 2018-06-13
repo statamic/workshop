@@ -126,6 +126,10 @@ Set any HTML attributes on the `<form>` tag. You can set multiple by pipe delimi
 
 The location your user will be taken after a successful form submission. If left blank, the user will stay on the same page.
 
+`files`
+
+Whether the form should accept file uploads. (It adds `enctype="multipart/form-data"` to your form tag) See [file uploads](#file-uploads) for more details.
+
 ## Variables
 
 `old`
@@ -156,6 +160,31 @@ Only allow Workshop features to work when logged in. Defaults to `true`.
 `whitelist`
 
 Only save data in fields that match those in your fieldset. Defaults to `true`.
+
+## File Uploads
+
+First up, add `files="true"` to your form tag. (This will add `enctype="multipart/form-data"` to the generated `<form>` tag. That’s always so difficult to remember.)
+
+```
+{{ workshop:entry:edit files="true" }}
+    ...
+{{ /workshop:entry:edit }}
+```
+
+Then add a `file` input for your corresponding asset field.
+
+``` yaml
+fields:
+  my_image_field:
+    type: assets
+    max_files: 1
+```
+
+```
+<input type="file" name="my_image_field" />
+```
+
+**Currently, only single file fields are supported. (eg. assets with max_files: 1)**
 
 ## Troubleshooting
 
