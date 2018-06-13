@@ -93,6 +93,25 @@ class WorkshopTags extends Tags
     }
 
     /**
+     * The {{ workshop:entry:delete }} tag
+     *
+     * @return string
+     */
+    public function entryDelete()
+    {
+        $entry = $this->getContent();
+
+        $data = array_merge($this->getErrorsAndSuccess(), $entry->data());
+
+        $html = $this->formOpen('entryDelete');
+        $html .= $this->getMetaFields();
+        $html .= $this->parse($data);
+        $html .= '</form>';
+
+        return $html;
+    }
+
+    /**
      * The {{ workshop:page:create }} tag
      *
      * @return string

@@ -238,6 +238,26 @@ class WorkshopController extends Controller
     }
 
     /**
+     * Delete an entry in a collection.
+     *
+     * @return RedirectResponse
+     */
+    public function postEntryDelete()
+    {
+        $this->content = Content::find($this->meta['id']);
+
+        $this->content->delete();
+
+        $this->flash->put('success', true);
+
+        if ($this->meta['redirect']) {
+            return redirect($this->getRedirect());
+        };
+
+        return redirect()->back();
+    }
+
+    /**
      * Create a page.
      *
      * @return RedirectResponse
