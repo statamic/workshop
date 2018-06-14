@@ -2,6 +2,7 @@
 
 namespace Statamic\Addons\Workshop;
 
+use Statamic\API\Str;
 use Statamic\API\URL;
 use Statamic\API\Crypt;
 use Statamic\API\Entry;
@@ -269,7 +270,10 @@ class WorkshopTags extends Tags
         $data = [];
 
         if ($this->hasErrors()) {
-            $data['errors'] = session('errors')->getBag('workshop')->all();
+            $data['errors'] = ($bag = session('errors')->getBag('workshop'))->all();
+            $data['error'] = collect($bag)->mapWithKeys(function ($errors, $field) {
+                return [Str::removeLeft($field, 'fields.') => $errors[0]];
+            })->all();
         }
 
         if ($this->flash->exists('success')) {
