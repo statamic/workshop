@@ -246,3 +246,9 @@ Be sure that the input's `name` attribute contains a pair of brackets.
 ```
 
 If you leave off the brackets, the form will only submit the last value.
+
+**My file upload isn't being validated correctly.**  
+or, **My file is not being uploaded, it's just saving the filename.**
+
+Make sure you've added `files="true"` to your tag pair. File inputs will just
+submit a filename unless you do this.
