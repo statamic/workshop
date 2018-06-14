@@ -162,11 +162,32 @@ This will be `true` if the form was submitted successfully.
 
 `errors`
 
-A tag pair of error messages return by validation. Example:
+An array of error messages returned by validation, so you can loop over all of them. For example:
+
 ```
-{{ errors }}
-    <li>{{ value }}</li>
-{{ /errors }}
+{{ if errors }}
+    <div class="errors">
+        <p>Oh no! There were some errors:</p>
+        <ul>
+            {{ errors }}
+                <li>{{ value }}
+            {{ /errors }}
+        </ul>
+
+        or...
+
+        {{ errors | ul }}
+    </div>
+{{ /if }}
+```
+
+`error`
+
+An array of error messages returned by validation, keyed by field name so you can reference them directly. Useful for inline errors. For example:
+
+```
+<input type="text" name="title" value="{{ old:value }}" />
+{{ if error:title }}<span class="error">{{ error:title }}</span>{{ /if }}
 ```
 
 ## Settings
