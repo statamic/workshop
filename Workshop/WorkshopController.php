@@ -309,6 +309,8 @@ class WorkshopController extends Controller
     {
         $this->fieldset = GlobalSet::find($this->meta['id'])->fieldset();
 
+        $this->meta['slugify'] = null;
+
         return $this->update();
     }
 
@@ -370,9 +372,11 @@ class WorkshopController extends Controller
         $rules = $builder->rules();
 
         // Ensure the title (or slugify-able field, really) is required.
-        $sluggard = array_filter(explode('|', array_get($rules, "fields.{$this->meta['slugify']}")));
-        $sluggard[] = 'required';
-        $rules["fields.{$this->meta['slugify']}"] = join('|', $sluggard);
+        if ($this->meta['slugify']) {
+            $sluggard = array_filter(explode('|', array_get($rules, "fields.{$this->meta['slugify']}")));
+            $sluggard[] = 'required';
+            $rules["fields.{$this->meta['slugify']}"] = join('|', $sluggard);
+        }
 
         return \Validator::make(['fields' => $fields], $rules, [], $builder->attributes());
     }
