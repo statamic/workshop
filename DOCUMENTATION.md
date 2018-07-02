@@ -85,7 +85,7 @@ You can use `id` or `url` to pick which page to delete. If unset, will assume cu
 
 ### Global:Edit
 
-Give the `set` name to pick which Global set to edit. If unset, will assume the base default `globals`.
+Give the `set` name to pick which Global set to edit. If unset, will assume the base default `global`.
 ```
 {{ workshop:global:edit set="company" }}
     <input type="text" name="site_name" value="{{ site_name }}">
