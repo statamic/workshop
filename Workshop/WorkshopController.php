@@ -12,6 +12,7 @@ use Statamic\API\Config;
 use Statamic\API\Content;
 use Statamic\API\Request;
 use Statamic\API\Fieldset;
+use Statamic\API\GlobalSet;
 use Statamic\API\Collection;
 use Statamic\Extend\Controller;
 use Stringy\StaticStringy as Stringy;
@@ -306,6 +307,8 @@ class WorkshopController extends Controller
      */
     public function postGlobalUpdate()
     {
+        $this->fieldset = GlobalSet::find($this->meta['id'])->fieldset();
+
         return $this->update();
     }
 
