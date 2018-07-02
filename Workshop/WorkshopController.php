@@ -307,7 +307,9 @@ class WorkshopController extends Controller
      */
     public function postGlobalUpdate()
     {
-        $this->fieldset = GlobalSet::find($this->meta['id'])->fieldset();
+        $this->content = GlobalSet::find($this->meta['id']);
+
+        $this->fieldset = $this->content->fieldset();
 
         $this->meta['slugify'] = null;
 
