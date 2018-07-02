@@ -28,6 +28,7 @@ When creating an entry, the only required parameter is the name of the collectio
 ```
 {{ workshop:entry:create collection="words" }}
     <input type="text" name="title" value="{{ old:title }}">
+    <textarea name="content">{{ old:content }}</textarea>
     <input type="submit">
 {{ /workshop:entry:create }}
 ```
@@ -38,6 +39,7 @@ You can use `id` or `url` to pick which entry to edit. If unset, will assume cur
 ```
 {{ workshop:entry:edit id="123abc" }}
     <input type="text" name="title" value="{{ title }}">
+    <textarea name="content">{{ content }}</textarea>
     <input type="submit">
 {{ /workshop:entry:edit }}
 ```
@@ -57,6 +59,7 @@ If you don't set a `parent` param/value, will create a top-level Page.
 ```
 {{ workshop:page:create parent="about" }}
     <input type="text" name="title" value="{{ old:title }}">
+    <textarea name="content">{{ old:content }}</textarea>
     <input type="submit">
 {{ /workshop:page:create }}
 ```
@@ -66,6 +69,7 @@ You can use `id` or `url` to pick which page to edit. If unset, will assume curr
 ```
 {{ workshop:page:edit id="987xyz" }}
     <input type="text" name="title" value="{{ title }}">
+    <textarea name="content">{{ content }}</textarea>
     <input type="submit">
 {{ /workshop:page:create }}
 ```
