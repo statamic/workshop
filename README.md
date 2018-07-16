@@ -2,6 +2,13 @@
 
 Create and edit entries, pages, and globals on the front-end of your site without the control panel.
 
+## License
+
+Workshop requires a license to be used while on a production site.  
+You can purchase one at https://statamic.com/marketplace/addons/workshop.
+
+You may use Workshop without a license while Statamic is in [Trial mode](https://docs.statamic.com/knowledge-base/trial-mode).
+
 ## Documentation
 
 Read it on the [Statamic Marketplace](https://statamic.com/marketplace/addons/workshop/docs) or contribute to it [here on GitHub](DOCUMENTATION.md).
