@@ -282,6 +282,8 @@ class WorkshopController extends Controller
      */
     public function postPageUpdate()
     {
+        $this->content = Content::find($this->meta['id']);
+
         // If a fieldset was specified, use that. Otherwise, use the associated entry's fieldset.
         $this->fieldset = ($this->meta['fieldset'])
             ? Fieldset::get($this->meta['fieldset'])
