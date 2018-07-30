@@ -335,6 +335,7 @@ class WorkshopController extends Controller
 
         $data = array_merge($this->content->data(), $this->whitelist($this->fields));
 
+        $this->content->slug($this->meta['slug']);
         $this->content->data($data);
 
         return $this->save();
