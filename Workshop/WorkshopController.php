@@ -108,6 +108,9 @@ class WorkshopController extends Controller
         $sluggard = array_get($this->fields, $this->meta['slugify'], current($this->fields));
 
         $this->meta['slug'] = Stringy::slugify($sluggard);
+
+        // Add it back into the fields so it can be validated.
+        $this->fields['slug'] = $this->meta['slug'];
     }
 
     /**
@@ -143,7 +146,10 @@ class WorkshopController extends Controller
         // If a fieldset was specified, use that, otherwise use the one from the collection.
         $this->fieldset = ($this->meta['fieldset']) ? Fieldset::get($this->meta['fieldset']) : $collection->fieldset();
 
-        $validator = $this->getValidator();
+        $validator = $this->getValidator([
+            'fields.slug' => "entry_slug_exists:{$collection->path()}"
+        ]);
+
         if ($validator->fails()) {
             return back()->withInput()->withErrors($validator, 'workshop');
         }
@@ -235,7 +241,9 @@ class WorkshopController extends Controller
             ? Fieldset::get($this->meta['fieldset'])
             : $this->content->fieldset();
 
-        return $this->update();
+        return $this->update([
+            'fields.slug' => "entry_slug_exists:{$this->content->collectionName()},{$this->content->id()}"
+        ]);
     }
 
     /**
@@ -259,7 +267,11 @@ class WorkshopController extends Controller
             $this->meta['fieldset'] ?: $this->getDefaultFieldset('page')
         );
 
-        $validator = $this->getValidator();
+
+        $validator = $this->getValidator([
+            'fields.slug' => "page_uri_exists:{$this->meta['parent']}"
+        ]);
+
         if ($validator->fails()) {
             return back()->withInput()->withErrors($validator, 'workshop');
         }
@@ -289,7 +301,9 @@ class WorkshopController extends Controller
             ? Fieldset::get($this->meta['fieldset'])
             : $this->content->fieldset();
 
-        return $this->update();
+        return $this->update([
+            'fields.slug' => "page_uri_exists:{$this->meta['parent']},{$this->content->id()}"
+        ]);
     }
 
     /**
@@ -323,9 +337,9 @@ class WorkshopController extends Controller
      *
      * @return RedirectResponse
      */
-    private function update()
+    private function update($rules = [])
     {
-        $validator = $this->getValidator();
+        $validator = $this->getValidator($rules);
 
         if ($validator->fails()) {
             return back()->withInput()->withErrors($validator, 'workshop');
@@ -366,7 +380,7 @@ class WorkshopController extends Controller
      *
      * @return mixed
      */
-    private function getValidator()
+    private function getValidator($extraRules = [])
     {
         $fields = $this->fields;
 
@@ -382,6 +396,8 @@ class WorkshopController extends Controller
             $sluggard[] = 'required';
             $rules["fields.{$this->meta['slugify']}"] = join('|', $sluggard);
         }
+
+        $rules = array_merge($rules, $extraRules);
 
         return \Validator::make(['fields' => $fields], $rules, [], $builder->attributes());
     }
