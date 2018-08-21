@@ -349,9 +349,15 @@ class WorkshopController extends Controller
         $this->uploadFiles();
 
         $data = array_merge($this->content->data(), $this->whitelist($this->fields));
-
         $this->content->slug($this->meta['slug']);
         $this->content->data($data);
+
+        // Update the order key if necessary
+        if ($date = array_get($this->meta, 'date')) {
+            $this->content->order($date);
+        } elseif ($order = array_get($this->meta, 'order')) {
+            $this->content->order($order);
+        }
 
         return $this->save();
     }
