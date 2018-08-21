@@ -214,17 +214,22 @@ class WorkshopController extends Controller
             return;
         }
 
-        $path = Path::assemble(array_get($config, 'folder'), $file->getClientOriginalName());
+        if ($file) {
 
-        $asset = Asset::create()
+            $path = Path::assemble(array_get($config, 'folder'), $file->getClientOriginalName());
+
+            $asset = Asset::create()
             ->container(array_get($config, 'container'))
             ->path(ltrim($path, '/'))
             ->get();
 
-        $asset->upload($file);
-        $asset->save();
+            $asset->upload($file);
+            $asset->save();
 
-        return $asset->url();
+            return $asset->url();
+        }
+
+        return;
     }
 
     /**
