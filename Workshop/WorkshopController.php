@@ -188,6 +188,7 @@ class WorkshopController extends Controller
             }
 
             $files = collect(is_array($files) ? $files : [$files])
+                ->filter()
                 ->map(function ($file) use ($field) {
                     return $this->uploadFile($file, $field);
                 });
@@ -214,22 +215,17 @@ class WorkshopController extends Controller
             return;
         }
 
-        if ($file) {
+        $path = Path::assemble(array_get($config, 'folder'), $file->getClientOriginalName());
 
-            $path = Path::assemble(array_get($config, 'folder'), $file->getClientOriginalName());
-
-            $asset = Asset::create()
+        $asset = Asset::create()
             ->container(array_get($config, 'container'))
             ->path(ltrim($path, '/'))
             ->get();
 
-            $asset->upload($file);
-            $asset->save();
+        $asset->upload($file);
+        $asset->save();
 
-            return $asset->url();
-        }
-
-        return;
+        return $asset->url();
     }
 
     /**
