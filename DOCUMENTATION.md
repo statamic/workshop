@@ -132,6 +132,7 @@ If working with Globals, the Globalset name.
 Sets the parent page, when creating Pages.
 
 `published`
+
 Sets the published state. Defaults to `true`.
 
 `slug`
